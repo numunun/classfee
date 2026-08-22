@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# 환경변수 — .env.example 만 예외로 커밋 허용
+.env
+.env*.local
+.env.local
+.env.development
+.env.production
+!.env.example
+
+# vercel
+.vercel
+
+# supabase 로컬 개발
+supabase/.branches
+supabase/.temp
+
+# 로그 / 잡동사니
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+*.pem
+coverage/
