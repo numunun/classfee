@@ -1,16 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { SCHOOL_DOMAIN } from "@/lib/types";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const [boardOpen, setBoardOpen] = useState(false);
-  const [grade, setGrade] = useState("2");
-  const [classNo, setClassNo] = useState("9");
-  const router = useRouter();
 
   async function signIn() {
     setLoading(true);
@@ -29,7 +24,7 @@ export default function LoginPage() {
     <main className="grid min-h-dvh place-items-center px-6 py-10">
       <div className="w-full max-w-sm text-center">
         <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-blue-600/90 text-2xl">
-          ⚖️
+          🏫
         </div>
         <h1 className="text-xl font-semibold">학급 관리 시스템</h1>
         <p className="mt-2 text-sm text-neutral-400">
@@ -54,56 +49,6 @@ export default function LoginPage() {
         <p className="mt-3 text-xs leading-relaxed text-neutral-500">
           처음 들어오시는 경우에도 같은 버튼으로 자동 가입돼요.
         </p>
-
-        <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-line" />
-          <span className="text-xs text-neutral-600">또는</span>
-          <span className="h-px flex-1 bg-line" />
-        </div>
-
-        <button
-          onClick={() => setBoardOpen((v) => !v)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium text-neutral-200"
-        >
-          📺 전자칠판 모드로 열기
-          <span className={`transition ${boardOpen ? "rotate-180" : ""}`}>⌄</span>
-        </button>
-
-        {boardOpen && (
-          <div className="mt-3 rounded-xl border border-line bg-surface p-4 text-left">
-            <p className="mb-2 text-xs text-neutral-500">
-              로그인 없이 CIP 현황판만 표시돼요. 교실 전자칠판에서 즐겨찾기 해두세요.
-            </p>
-            <div className="flex gap-2">
-              <select
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                aria-label="학년"
-                className="flex-1"
-              >
-                {[1, 2, 3].map((g) => (
-                  <option key={g} value={g}>{g}학년</option>
-                ))}
-              </select>
-              <select
-                value={classNo}
-                onChange={(e) => setClassNo(e.target.value)}
-                aria-label="반"
-                className="flex-1"
-              >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((c) => (
-                  <option key={c} value={c}>{c}반</option>
-                ))}
-              </select>
-              <button
-                onClick={() => router.push(`/board/${grade}/${classNo}`)}
-                className="h-[2.875rem] shrink-0 rounded-xl bg-white px-4 text-sm font-medium text-neutral-900"
-              >
-                열기 →
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
