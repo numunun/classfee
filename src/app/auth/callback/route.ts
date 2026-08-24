@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/auth/error?reason=domain`);
   }
 
-  // 2) 명단 매칭 + auth 계정 연결 (security definer RPC)
+  // 2) 관리자가 미리 등록해 둔 명단이 있으면 자동 연결
   await supabase.rpc("link_current_user");
 
   const { data: student } = await supabase
@@ -37,10 +37,9 @@ export async function GET(request: Request) {
     .eq("auth_user_id", user!.id)
     .maybeSingle();
 
-  // 3) 명단에 없으면 거부
+  // 3) 명단에 없으면 거부하지 않고 본인 등록 화면으로 보낸다.
   if (!student) {
-    await supabase.auth.signOut();
-    return NextResponse.redirect(`${origin}/auth/error?reason=notlisted`);
+    return NextResponse.redirect(`${origin}/onboarding`);
   }
 
   return NextResponse.redirect(`${origin}/`);
