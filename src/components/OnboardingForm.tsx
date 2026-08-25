@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { selfRegister } from "@/app/onboarding/actions";
 import { useToast } from "@/components/Toast";
 
 export function OnboardingForm() {
   const [pending, setPending] = useState(false);
   const toast = useToast();
-  const router = useRouter();
 
   return (
     <form
@@ -17,11 +15,11 @@ export function OnboardingForm() {
         try {
           await selfRegister(fd);
           toast("등록이 완료됐어요.");
-          router.replace("/student");
-          router.refresh();
+          // 클라이언트 라우터 캐시가 "미등록" 상태를 붙잡고 있어서
+          // router.replace 로는 넘어가지 않는다. 브라우저 통짜 이동으로 확실히 새로 연다.
+          window.location.href = "/student";
         } catch (e) {
           toast((e as Error).message, "error");
-        } finally {
           setPending(false);
         }
       }}
