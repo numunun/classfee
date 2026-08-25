@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 // 본인 등록. role 은 DB 함수가 'student' 로 고정하므로 클라이언트가 지정할 수 없다.
@@ -17,4 +18,7 @@ export async function selfRegister(formData: FormData) {
     p_student_number: studentNumber,
   });
   if (error) throw new Error(error.message);
+
+  // 등록 전 상태로 캐시된 페이지들을 모두 무효화한다.
+  revalidatePath("/", "layout");
 }
