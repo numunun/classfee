@@ -51,6 +51,7 @@ export default async function AdminDashboard() {
         <Action href="/admin/payments">입금 승인</Action>
         <Action href="/admin/students">학생 관리</Action>
         <Action href="/admin/settings">설정</Action>
+        <Action href="/admin/debug">진단</Action>
       </nav>
 
       <section className="mt-5 rounded-2xl bg-surface">
