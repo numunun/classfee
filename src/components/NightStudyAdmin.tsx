@@ -2,11 +2,24 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setNightStatus, saveAcademyDays, setIndependent } from "@/app/admin/night-study/actions";
+import {
+  setNightStatus,
+  clearNightStatus,
+  saveAcademyDays,
+  setIndependent,
+} from "@/app/admin/night-study/actions";
 import { useToast } from "@/components/Toast";
 import {
-  NS_LABEL, NS_STYLE, REASON_TYPES, SESSIONS, SESSION_LABEL, seatNo,
-  type NightStatus, type Session,
+  NS_LABEL,
+  NS_STYLE,
+  REASON_TYPES,
+  REASON_PLACEHOLDER,
+  SESSIONS,
+  SESSION_LABEL,
+  seatNo,
+  type NightStatus,
+  type ReasonType,
+  type Session,
 } from "@/lib/night-study";
 
 export type Row = {
@@ -14,9 +27,7 @@ export type Row = {
   name: string;
   student_number: number | null;
   isIndependent: boolean;
-  /** 차수별 현재 상태 */
   states: Record<number, { status: NightStatus; reason: string | null; selfReported: boolean }>;
-  /** 차수별 학원 요일 */
   academy: Record<number, number[]>;
 };
 
@@ -70,14 +81,65 @@ export function NightStudyAdmin({ rows, date }: { rows: Row[]; date: string }) {
 
 function TodayList({ rows, date }: { rows: Row[]; date: string }) {
   const [session, setSession] = useState<Session>(1);
+  const [query, setQuery] = useState("");
+
+  const shown = query.trim()
+    ? rows.filter(
+        (r) => r.name.includes(query.trim()) || String(r.student_number ?? "").includes(query.trim())
+      )
+    : rows;
+
+  const attending = rows.filter((r) => {
+    const st = r.states[session];
+    return st ? st.status === "present" : true;
+  }).length;
+
+  return (
+    <>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <SessionTabs value={session} onChange={setSession} />
+        <span className="text-xs text-neutral-500">
+          참석 {attending} / {rows.length}명
+        </span>
+      </div>
+
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="이름 또는 번호로 찾기"
+        className="mb-3"
+      />
+
+      <ul className="overflow-hidden rounded-2xl bg-surface">
+        {shown.map((r) => (
+          <StudentRow key={r.id + session} row={r} session={session} date={date} />
+        ))}
+        {shown.length === 0 && (
+          <li className="px-4 py-8 text-center text-sm text-neutral-500">
+            찾는 학생이 없어요.
+          </li>
+        )}
+      </ul>
+    </>
+  );
+}
+
+function StudentRow({ row, session, date }: { row: Row; session: Session; date: string }) {
+  const st = row.states[session];
+  const status: NightStatus = st?.status ?? (row.isIndependent ? "independent" : "present");
+  const hasRecord = !!st;
+
+  const [draft, setDraft] = useState<ReasonType | null>(null);
+  const [reason, setReason] = useState(st?.reason ?? "");
   const [pending, start] = useTransition();
   const toast = useToast();
   const router = useRouter();
 
-  function set(studentId: string, status: NightStatus, reason: string | null) {
+  function apply(next: NightStatus, why: string) {
     start(async () => {
       try {
-        await setNightStatus(studentId, date, session, status, reason ?? undefined);
+        await setNightStatus(row.id, date, session, next, why);
+        setDraft(null);
         router.refresh();
       } catch (e) {
         toast((e as Error).message, "error");
@@ -85,65 +147,102 @@ function TodayList({ rows, date }: { rows: Row[]; date: string }) {
     });
   }
 
-  const counts = CHOICES.reduce(
-    (acc, c) => ({
-      ...acc,
-      [c]: rows.filter((r) => (r.states[session]?.status ?? "present") === c).length,
-    }),
-    {} as Record<string, number>
-  );
+  function clear() {
+    start(async () => {
+      try {
+        await clearNightStatus(row.id, date, session);
+        setDraft(null);
+        router.refresh();
+      } catch (e) {
+        toast((e as Error).message, "error");
+      }
+    });
+  }
+
+  function pick(c: NightStatus) {
+    // 참석은 사유가 필요 없으니 바로 반영, 나머지는 사유 입력을 연다.
+    if (c === "present") {
+      apply("present", "");
+      return;
+    }
+    setDraft(c as ReasonType);
+    setReason(st?.reason ?? "");
+  }
 
   return (
-    <>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <SessionTabs value={session} onChange={setSession} />
-        <span className="text-xs text-neutral-500">
-          참석 {counts.present + rows.filter((r) => r.isIndependent && !r.states[session]).length}
-          {" / "}
-          {rows.length}명
-        </span>
+    <li className="border-b border-line px-4 py-3 last:border-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm">
+            <span className="mr-2 text-neutral-500">{seatNo(row.student_number) ?? "-"}</span>
+            {row.name}
+            {st?.selfReported && <span className="ml-2 text-xs text-neutral-600">본인 신고</span>}
+            {hasRecord && !st?.selfReported && (
+              <span className="ml-2 text-xs text-blue-400/70">관리자 지정</span>
+            )}
+          </p>
+          {st?.reason && !draft && (
+            <p className="truncate text-xs text-neutral-500">{st.reason}</p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
+            {NS_LABEL[status]}
+          </span>
+          {hasRecord && (
+            <button
+              disabled={pending}
+              onClick={clear}
+              title="기록을 지워 기본값으로 되돌립니다"
+              className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-neutral-500 disabled:opacity-50"
+            >
+              초기화
+            </button>
+          )}
+        </div>
       </div>
 
-      <ul className="overflow-hidden rounded-2xl bg-surface">
-        {rows.map((r) => {
-          const st = r.states[session];
-          const status: NightStatus = st?.status ?? (r.isIndependent ? "independent" : "present");
-          return (
-            <li key={r.id} className="border-b border-line px-4 py-3 last:border-0">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm">
-                    <span className="mr-2 text-neutral-500">{seatNo(r.student_number) ?? "-"}</span>
-                    {r.name}
-                    {st?.selfReported && (
-                      <span className="ml-2 text-xs text-neutral-600">본인 신고</span>
-                    )}
-                  </p>
-                  {st?.reason && <p className="truncate text-xs text-neutral-500">{st.reason}</p>}
-                </div>
-                <span className={`shrink-0 rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
-                  {NS_LABEL[status]}
-                </span>
-              </div>
-              <div className="mt-2 grid grid-cols-5 gap-1.5">
-                {CHOICES.map((c) => (
-                  <button
-                    key={c}
-                    disabled={pending}
-                    onClick={() => set(r.id, c, st?.reason ?? null)}
-                    className={`h-9 rounded-lg border text-[11px] font-medium disabled:opacity-50 ${
-                      status === c ? NS_STYLE[c] : "border-line bg-surface-2 text-neutral-400"
-                    }`}
-                  >
-                    {NS_LABEL[c]}
-                  </button>
-                ))}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </>
+      <div className="mt-2 grid grid-cols-5 gap-1.5">
+        {CHOICES.map((c) => (
+          <button
+            key={c}
+            disabled={pending}
+            onClick={() => pick(c)}
+            className={`h-9 rounded-lg border text-[11px] font-medium disabled:opacity-50 ${
+              (draft ?? status) === c ? NS_STYLE[c] : "border-line bg-surface-2 text-neutral-400"
+            }`}
+          >
+            {NS_LABEL[c]}
+          </button>
+        ))}
+      </div>
+
+      {draft && (
+        <div className="mt-2 flex gap-2">
+          <input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={REASON_PLACEHOLDER[draft]}
+            autoFocus
+            className="flex-1"
+          />
+          <button
+            disabled={pending}
+            onClick={() => apply(draft, reason)}
+            className="h-[2.875rem] shrink-0 rounded-xl bg-white px-4 text-sm font-medium text-neutral-900 disabled:opacity-50"
+          >
+            저장
+          </button>
+          <button
+            disabled={pending}
+            onClick={() => setDraft(null)}
+            className="h-[2.875rem] shrink-0 rounded-xl bg-surface-2 px-3 text-sm text-neutral-400 disabled:opacity-50"
+          >
+            취소
+          </button>
+        </div>
+      )}
+    </li>
   );
 }
 

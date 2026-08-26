@@ -12,6 +12,12 @@ async function assertAdmin() {
 
 const VALID = ["present", "academy", "hospital", "special", "other"];
 
+function touch() {
+  revalidatePath("/admin/night-study");
+  revalidatePath("/student");
+  revalidatePath("/board", "layout");
+}
+
 // 관리자가 특정 학생의 특정 차수 출결을 지정한다.
 export async function setNightStatus(
   studentId: string,
@@ -39,8 +45,26 @@ export async function setNightStatus(
     { onConflict: "student_id,study_date,session" }
   );
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/night-study");
-  revalidatePath("/board", "layout");
+  touch();
+}
+
+// 기록을 지워 기본값(참석 / 학원 스케줄 / 자주반)으로 되돌린다.
+// 잘못 눌렀을 때, 또는 학생이 직접 쓰게 다시 열어줄 때 사용한다.
+export async function clearNightStatus(
+  studentId: string,
+  studyDate: string,
+  session: number
+) {
+  await assertAdmin();
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("night_study_records")
+    .delete()
+    .eq("student_id", studentId)
+    .eq("study_date", studyDate)
+    .eq("session", session);
+  if (error) throw new Error(error.message);
+  touch();
 }
 
 // 특정 차수의 학원 요일을 통째로 교체한다.
@@ -69,8 +93,7 @@ export async function saveAcademyDays(studentId: string, session: number, weekda
     );
     if (error) throw new Error(error.message);
   }
-  revalidatePath("/admin/night-study");
-  revalidatePath("/board", "layout");
+  touch();
 }
 
 // 자주반 여부 토글 (명단 속성)
@@ -82,6 +105,5 @@ export async function setIndependent(studentId: string, value: boolean) {
     .update({ is_independent: value })
     .eq("id", studentId);
   if (error) throw new Error(error.message);
-  revalidatePath("/admin/night-study");
-  revalidatePath("/board", "layout");
+  touch();
 }
