@@ -102,23 +102,28 @@ export async function GET(
     '<meta http-equiv="refresh" content="60;url=' + esc(refreshTarget) + '">' +
     "<title>CIP 현황판</title>" +
     "<style>" +
-    "html,body{margin:0;padding:0;background:#000;color:#eee;" +
+    // 세로 기준(vh)으로 크기를 잡아 항상 한 화면에 들어가게 한다.
+    "html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;color:#eee;" +
     "font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}" +
-    ".wrap{padding:18px 22px;}" +
-    "h1{margin:0;font-size:44px;font-weight:bold;color:#fff;}" +
-    ".sub{margin:6px 0 0 0;font-size:22px;color:#999;}" +
-    ".tabs{margin:14px 0 0 0;font-size:24px;}" +
-    ".tab{display:inline-block;padding:8px 20px;margin-right:8px;" +
+    ".wrap{height:100%;padding:1.2vh 1.2vw;box-sizing:border-box;}" +
+    "h1{margin:0;font-size:3.4vh;font-weight:bold;color:#fff;line-height:1.1;}" +
+    ".sub{margin:0.3vh 0 0 0;font-size:1.7vh;color:#999;}" +
+    ".tabs{margin:0.8vh 0 0 0;}" +
+    ".tab{display:inline-block;padding:0.4vh 1.4vh;margin-right:0.6vh;font-size:1.8vh;" +
     "border:2px solid #333;color:#888;text-decoration:none;}" +
     ".tab-on{background:#fff;color:#000;border-color:#fff;font-weight:bold;}" +
     ".tab-live{border-color:#2e8b57;color:#7ee2a8;}" +
-    ".sum{margin:12px 0 0 0;font-size:22px;color:#bbb;}" +
-    "table{width:100%;border-collapse:separate;border-spacing:8px;margin-top:12px;}" +
-    "td{width:14%;text-align:center;vertical-align:top;padding:14px 6px;border-width:2px;border-style:solid;}" +
-    ".no{font-size:18px;color:#777;}" +
-    ".nm{font-size:34px;font-weight:bold;color:#fff;margin-top:4px;}" +
-    ".st{font-size:22px;margin-top:6px;}" +
-    ".rs{font-size:16px;color:#999;margin-top:4px;}" +
+    ".sum{margin:0.6vh 0 0 0;font-size:1.7vh;color:#bbb;}" +
+    "table{width:100%;height:78vh;border-collapse:separate;border-spacing:0.5vh;margin-top:0.6vh;" +
+    "table-layout:fixed;}" +
+    "td{width:14%;text-align:center;vertical-align:middle;padding:0.4vh 0.3vh;" +
+    "border-width:2px;border-style:solid;overflow:hidden;}" +
+    ".no{font-size:1.3vh;color:#777;}" +
+    ".nm{font-size:2.7vh;font-weight:bold;color:#fff;margin-top:0.3vh;" +
+    "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
+    ".st{font-size:1.8vh;margin-top:0.4vh;}" +
+    ".rs{font-size:1.3vh;color:#999;margin-top:0.2vh;" +
+    "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
     ".empty{border-color:#222;color:#333;}" +
     "</style></head><body><div class=\"wrap\">";
 

@@ -27,7 +27,7 @@ export function OnboardingForm() {
     >
       <div>
         <label htmlFor="name">이름</label>
-        <input id="name" name="name" required maxLength={20} placeholder="황성재" className="mt-1.5" />
+        <input id="name" name="name" required maxLength={20} placeholder="XXX" className="mt-1.5" />
       </div>
       <div>
         <label htmlFor="studentNumber">학번</label>
@@ -37,7 +37,7 @@ export function OnboardingForm() {
           type="number"
           inputMode="numeric"
           required
-          placeholder="20935"
+          placeholder="209XX"
           className="mt-1.5"
         />
       </div>

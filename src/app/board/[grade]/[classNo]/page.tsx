@@ -25,15 +25,18 @@ type Snap = {
   is_independent: boolean;
 };
 
-// 4K(3840px)에서 꽉 차도록 vw 기준으로 키운다. 작은 화면에서도 clamp 로 안전.
+const COLS = 7;
+
+// 잘림의 원인은 세로였으므로 크기 기준을 vh 로 잡는다.
+// 화면이 세로로 짧아지면 글자도 같이 작아져서 항상 한 화면에 들어간다.
 const T = {
-  title: "text-[clamp(1.75rem,2.6vw,4.5rem)]",
-  date: "text-[clamp(0.95rem,1.2vw,2rem)]",
-  chip: "text-[clamp(0.8rem,1.05vw,1.9rem)]",
-  seat: "text-[clamp(0.7rem,0.85vw,1.5rem)]",
-  name: "text-[clamp(1.05rem,1.7vw,3rem)]",
-  badge: "text-[clamp(0.75rem,1vw,1.75rem)]",
-  reason: "text-[clamp(0.65rem,0.8vw,1.4rem)]",
+  title: "text-[clamp(1.1rem,3.6vh,3.2rem)]",
+  date: "text-[clamp(0.7rem,1.8vh,1.5rem)]",
+  chip: "text-[clamp(0.65rem,1.7vh,1.4rem)]",
+  seat: "text-[clamp(0.6rem,1.4vh,1.15rem)]",
+  name: "text-[clamp(0.85rem,2.9vh,2.4rem)]",
+  badge: "text-[clamp(0.6rem,1.6vh,1.3rem)]",
+  reason: "text-[clamp(0.55rem,1.3vh,1.05rem)]",
 };
 
 const CARD: Record<NightStatus, string> = {
@@ -57,15 +60,11 @@ export default async function BoardPage({
   const grade = Number(params.grade);
   const classNo = Number(params.classNo);
 
-  // ?s= 가 있으면 그것을 쓰고, 없으면 한국 시각 기준 "지금 진행 중인 차수"를 기본값으로.
-  // 어느 차수 시간도 아니면 1차를 보여준다.
   const explicit = (SESSIONS as readonly number[]).includes(Number(searchParams.s))
     ? (Number(searchParams.s) as Session)
     : null;
   const session: Session = explicit ?? liveSessionAt(seoulMinutesOfDay()) ?? 1;
 
-  // 로그인 없이 도는 화면이므로 쿠키 없는 익명 클라이언트를 쓴다.
-  // board_snapshot 은 security definer 라 이름/번호/상태만 내보낸다.
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -84,7 +83,7 @@ export default async function BoardPage({
 
   if (error) {
     return (
-      <div className="grid min-h-dvh place-items-center px-8 text-center">
+      <div className="grid h-[100dvh] place-items-center px-8 text-center">
         <div>
           <p className="text-2xl font-semibold text-red-300">현황판을 열 수 없어요</p>
           <p className="mt-3 text-neutral-400">{error.message}</p>
@@ -96,6 +95,7 @@ export default async function BoardPage({
   const rows = (data ?? []) as Snap[];
   const bySeat = new Map(rows.map((r) => [r.seat_no, r]));
   const maxSeat = Math.max(35, ...rows.map((r) => r.seat_no));
+  const rowCount = Math.ceil(maxSeat / COLS);
 
   const counts = ORDER.reduce(
     (acc, k) => ({ ...acc, [k]: rows.filter((r) => r.status === k).length }),
@@ -106,24 +106,26 @@ export default async function BoardPage({
   const qs = searchParams.k ? `&k=${encodeURIComponent(searchParams.k)}` : "";
 
   return (
-    <div className="min-h-dvh px-[2vw] py-[1.6vw]">
+    <div className="flex h-[100dvh] flex-col overflow-hidden px-[1.5vw] py-[1.2vh]">
       <AutoRefresh seconds={60} />
 
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      <header className="flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <div>
-          <h1 className={`${T.title} font-bold tracking-tight`}>{label} CIP 현황</h1>
-          <p className={`${T.date} mt-1 text-neutral-500`}>
+          <h1 className={`${T.title} font-bold leading-tight tracking-tight`}>
+            {label} CIP 현황
+          </h1>
+          <p className={`${T.date} text-neutral-500`}>
             <BoardClock />
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <BoardSessionTabs current={session} query={qs} className={T.chip} />
-          <span className="mx-1 h-6 w-px bg-line" />
+          <span className="mx-1 h-5 w-px bg-line" />
           {ORDER.filter((k) => counts[k] > 0).map((k) => (
             <span
               key={k}
-              className={`${T.chip} rounded-xl border px-[0.9em] py-[0.35em] font-semibold ${CARD[k]}`}
+              className={`${T.chip} rounded-lg border px-[0.8em] py-[0.25em] font-semibold ${CARD[k]}`}
             >
               {NS_LABEL[k]} {counts[k]}
             </span>
@@ -131,33 +133,41 @@ export default async function BoardPage({
         </div>
       </header>
 
-      <div className="mt-[1.4vw] grid grid-cols-5 gap-[0.8vw] sm:grid-cols-7">
-        {Array.from({ length: maxSeat }, (_, i) => i + 1).map((n) => {
+      <div
+        className="mt-[1.2vh] grid min-h-0 flex-1 gap-[0.7vh]"
+        style={{
+          gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+        }}
+      >
+        {Array.from({ length: rowCount * COLS }, (_, i) => i + 1).map((n) => {
           const r = bySeat.get(n);
           if (!r) {
             return (
               <div
                 key={n}
-                className="rounded-[1vw] border border-dashed border-line px-2 py-[1.2vw] text-center opacity-25"
+                className="flex items-center justify-center rounded-xl border border-dashed border-line opacity-20"
               >
-                <p className={`${T.seat} text-neutral-600`}>{n}번</p>
+                <span className={`${T.seat} text-neutral-600`}>{n}번</span>
               </div>
             );
           }
           return (
             <div
               key={n}
-              className={`flex flex-col items-center rounded-[1vw] border px-[0.5vw] py-[1.1vw] text-center ${CARD[r.status]}`}
+              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center ${CARD[r.status]}`}
             >
-              <p className={`${T.seat} font-medium opacity-50`}>{n}번</p>
-              <p className={`${T.name} mt-[0.3vw] font-bold leading-tight text-white`}>{r.name}</p>
+              <p className={`${T.seat} font-medium leading-none opacity-50`}>{n}번</p>
+              <p className={`${T.name} mt-[0.4vh] truncate font-bold leading-tight text-white`}>
+                {r.name}
+              </p>
               <span
-                className={`${T.badge} mt-[0.5vw] inline-block rounded-full border border-current px-[0.7em] py-[0.15em] font-semibold`}
+                className={`${T.badge} mt-[0.5vh] rounded-full border border-current px-[0.6em] py-[0.1em] font-semibold leading-tight`}
               >
                 {NS_ICON[r.status]} {NS_LABEL[r.status]}
               </span>
               {r.reason && (
-                <p className={`${T.reason} mt-[0.35vw] line-clamp-2 opacity-60`}>{r.reason}</p>
+                <p className={`${T.reason} mt-[0.3vh] w-full truncate opacity-60`}>{r.reason}</p>
               )}
             </div>
           );
