@@ -199,7 +199,7 @@ export default async function DebugPage() {
         <div className="mb-4 rounded-xl border border-red-800/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">
           DB 진단 실패: {repError.message}
           <p className="mt-1 text-xs text-red-400/70">
-            0010 마이그레이션을 실행했는지 확인해 주세요.
+            마이그레이션을 실행했는지 확인해 주세요.
           </p>
         </div>
       )}

@@ -1,26 +1,26 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Student } from "@/lib/types";
 import type { User } from "@supabase/supabase-js";
 
-// 현재 로그인한 auth 사용자 (students 명단 등록 여부와 무관)
-export async function getCurrentUser(): Promise<User | null> {
+// cache() 로 감싸면 한 번의 요청(레이아웃 + 페이지 + 하위 컴포넌트) 안에서
+// 몇 번을 호출하든 실제 조회는 한 번만 일어난다.
+// 이게 없으면 admin/layout 과 admin/page 가 각각 인증 왕복을 해서 두 배로 느려진다.
+
+export const getCurrentUser = cache(async (): Promise<User | null> => {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-// 현재 로그인한 사용자의 students 레코드를 DB 에서 직접 조회.
-// 클라이언트가 보낸 값이 아니라 항상 서버가 DB 로 확인한다.
-export async function getCurrentStudent(): Promise<Student | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const getCurrentStudent = cache(async (): Promise<Student | null> => {
+  const user = await getCurrentUser();
   if (!user) return null;
 
+  const supabase = createClient();
   const { data } = await supabase
     .from("students")
     .select("id, student_number, name, google_email, role, auth_user_id, is_independent")
@@ -28,7 +28,7 @@ export async function getCurrentStudent(): Promise<Student | null> {
     .maybeSingle();
 
   return (data as Student) ?? null;
-}
+});
 
 // 로그인 O / 명단 등록 X 인 사용자는 /onboarding 으로 보낸다.
 export async function requireStudent(): Promise<Student> {
