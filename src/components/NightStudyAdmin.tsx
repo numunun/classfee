@@ -16,6 +16,7 @@ import {
   REASON_PLACEHOLDER,
   SESSIONS,
   SESSION_LABEL,
+  ACADEMY_SESSIONS,
   seatNo,
   type NightStatus,
   type ReasonType,
@@ -28,11 +29,29 @@ export type Row = {
   student_number: number | null;
   isIndependent: boolean;
   states: Record<number, { status: NightStatus; reason: string | null; selfReported: boolean }>;
-  academy: Record<number, number[]>;
+  /** 학원 가는 요일 (1=월 … 4=목). 차수는 2·3차로 고정 */
+  academyDays: number[];
 };
 
-const DAYS = ["월", "화", "수", "목", "금"];
+const DAYS = ["월", "화", "수", "목"];
 const CHOICES: NightStatus[] = ["present", ...REASON_TYPES];
+
+/**
+ * 기록이 없을 때의 기본 상태.
+ * 우선순위: 당일 기록 > 학원 스케줄 > 자주반 > 참석
+ * 학원이 자주반보다 앞선다 (학원 가는 날은 자주반도 안 가므로).
+ */
+function resolve(row: Row, session: Session, weekday: number | null): NightStatus {
+  const rec = row.states[session];
+  if (rec) return rec.status;
+  const isAcademy =
+    weekday !== null &&
+    row.academyDays.includes(weekday) &&
+    (ACADEMY_SESSIONS as readonly number[]).includes(session);
+  if (isAcademy) return "academy";
+  if (row.isIndependent) return "independent";
+  return "present";
+}
 
 function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Session) => void }) {
   return (
@@ -52,7 +71,15 @@ function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Sessio
   );
 }
 
-export function NightStudyAdmin({ rows, date }: { rows: Row[]; date: string }) {
+export function NightStudyAdmin({
+  rows,
+  date,
+  weekday,
+}: {
+  rows: Row[];
+  date: string;
+  weekday: number | null;
+}) {
   const [tab, setTab] = useState<"today" | "schedule">("today");
   return (
     <>
@@ -74,25 +101,33 @@ export function NightStudyAdmin({ rows, date }: { rows: Row[]; date: string }) {
           학원 · 자주반
         </button>
       </div>
-      {tab === "today" ? <TodayList rows={rows} date={date} /> : <ScheduleList rows={rows} />}
+      {tab === "today" ? (
+        <TodayList rows={rows} date={date} weekday={weekday} />
+      ) : (
+        <ScheduleList rows={rows} />
+      )}
     </>
   );
 }
 
-function TodayList({ rows, date }: { rows: Row[]; date: string }) {
+function TodayList({
+  rows,
+  date,
+  weekday,
+}: {
+  rows: Row[];
+  date: string;
+  weekday: number | null;
+}) {
   const [session, setSession] = useState<Session>(1);
   const [query, setQuery] = useState("");
 
-  const shown = query.trim()
-    ? rows.filter(
-        (r) => r.name.includes(query.trim()) || String(r.student_number ?? "").includes(query.trim())
-      )
+  const q = query.trim();
+  const shown = q
+    ? rows.filter((r) => r.name.includes(q) || String(r.student_number ?? "").includes(q))
     : rows;
 
-  const attending = rows.filter((r) => {
-    const st = r.states[session];
-    return st ? st.status === "present" : true;
-  }).length;
+  const attending = rows.filter((r) => resolve(r, session, weekday) === "present").length;
 
   return (
     <>
@@ -112,21 +147,35 @@ function TodayList({ rows, date }: { rows: Row[]; date: string }) {
 
       <ul className="overflow-hidden rounded-2xl bg-surface">
         {shown.map((r) => (
-          <StudentRow key={r.id + session} row={r} session={session} date={date} />
+          <StudentRow
+            key={r.id + session}
+            row={r}
+            session={session}
+            date={date}
+            weekday={weekday}
+          />
         ))}
         {shown.length === 0 && (
-          <li className="px-4 py-8 text-center text-sm text-neutral-500">
-            찾는 학생이 없어요.
-          </li>
+          <li className="px-4 py-8 text-center text-sm text-neutral-500">찾는 학생이 없어요.</li>
         )}
       </ul>
     </>
   );
 }
 
-function StudentRow({ row, session, date }: { row: Row; session: Session; date: string }) {
+function StudentRow({
+  row,
+  session,
+  date,
+  weekday,
+}: {
+  row: Row;
+  session: Session;
+  date: string;
+  weekday: number | null;
+}) {
   const st = row.states[session];
-  const status: NightStatus = st?.status ?? (row.isIndependent ? "independent" : "present");
+  const status = resolve(row, session, weekday);
   const hasRecord = !!st;
 
   const [draft, setDraft] = useState<ReasonType | null>(null);
@@ -180,10 +229,11 @@ function StudentRow({ row, session, date }: { row: Row; session: Session; date: 
             {hasRecord && !st?.selfReported && (
               <span className="ml-2 text-xs text-blue-400/70">관리자 지정</span>
             )}
+            {!hasRecord && status === "academy" && (
+              <span className="ml-2 text-xs text-neutral-600">학원 요일</span>
+            )}
           </p>
-          {st?.reason && !draft && (
-            <p className="truncate text-xs text-neutral-500">{st.reason}</p>
-          )}
+          {st?.reason && !draft && <p className="truncate text-xs text-neutral-500">{st.reason}</p>}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
@@ -247,24 +297,19 @@ function StudentRow({ row, session, date }: { row: Row; session: Session; date: 
 }
 
 function ScheduleList({ rows }: { rows: Row[] }) {
-  const [session, setSession] = useState<Session>(1);
   const [pending, start] = useTransition();
   const toast = useToast();
   const router = useRouter();
-  const [draft, setDraft] = useState<Record<string, Record<number, number[]>>>(() =>
-    Object.fromEntries(rows.map((r) => [r.id, { ...r.academy }]))
+  const [draft, setDraft] = useState<Record<string, number[]>>(() =>
+    Object.fromEntries(rows.map((r) => [r.id, [...r.academyDays]]))
   );
 
   function toggle(studentId: string, day: number) {
     setDraft((cur) => {
-      const perSession = cur[studentId] ?? {};
-      const days = perSession[session] ?? [];
+      const days = cur[studentId] ?? [];
       return {
         ...cur,
-        [studentId]: {
-          ...perSession,
-          [session]: days.includes(day) ? days.filter((d) => d !== day) : [...days, day],
-        },
+        [studentId]: days.includes(day) ? days.filter((d) => d !== day) : [...days, day],
       };
     });
   }
@@ -272,8 +317,8 @@ function ScheduleList({ rows }: { rows: Row[] }) {
   function save(studentId: string) {
     start(async () => {
       try {
-        await saveAcademyDays(studentId, session, draft[studentId]?.[session] ?? []);
-        toast(`${SESSION_LABEL[session]} 학원 요일을 저장했어요.`);
+        await saveAcademyDays(studentId, draft[studentId] ?? []);
+        toast("학원 요일을 저장했어요.");
         router.refresh();
       } catch (e) {
         toast((e as Error).message, "error");
@@ -295,19 +340,17 @@ function ScheduleList({ rows }: { rows: Row[] }) {
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <SessionTabs value={session} onChange={setSession} />
-      </div>
       <p className="mb-3 text-xs leading-relaxed text-neutral-500">
-        학원 가는 요일을 차수별로 체크해두면, 그날 아무도 입력하지 않아도 자동으로 「학원」으로
-        표시돼요. 자주반은 한 번 켜두면 매일 자동 적용돼요.
+        학원 가는 요일을 체크해두면 그날 <span className="text-neutral-300">2차·3차</span>가 자동으로
+        「학원」이 돼요. 1차는 참석이에요. 자주반은 한 번 켜두면 매일 적용되고, 학원 가는 날에는
+        학원이 우선해요.
       </p>
 
       <ul className="overflow-hidden rounded-2xl bg-surface">
         {rows.map((r) => {
-          const days = draft[r.id]?.[session] ?? [];
-          const saved = r.academy[session] ?? [];
-          const dirty = JSON.stringify([...days].sort()) !== JSON.stringify([...saved].sort());
+          const days = draft[r.id] ?? [];
+          const dirty =
+            JSON.stringify([...days].sort()) !== JSON.stringify([...r.academyDays].sort());
           return (
             <li key={r.id} className="border-b border-line px-4 py-3 last:border-0">
               <div className="flex items-center justify-between gap-3">
@@ -319,7 +362,9 @@ function ScheduleList({ rows }: { rows: Row[] }) {
                   disabled={pending}
                   onClick={() => toggleIndependent(r.id, !r.isIndependent)}
                   className={`shrink-0 rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
-                    r.isIndependent ? NS_STYLE.independent : "border-line bg-surface-2 text-neutral-500"
+                    r.isIndependent
+                      ? NS_STYLE.independent
+                      : "border-line bg-surface-2 text-neutral-500"
                   }`}
                 >
                   자주반

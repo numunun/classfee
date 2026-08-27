@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentStudent } from "@/lib/auth";
+import { ACADEMY_SESSIONS } from "@/lib/night-study";
 import { revalidatePath } from "next/cache";
 
 async function assertAdmin() {
@@ -49,7 +50,6 @@ export async function setNightStatus(
 }
 
 // 기록을 지워 기본값(참석 / 학원 스케줄 / 자주반)으로 되돌린다.
-// 잘못 눌렀을 때, 또는 학생이 직접 쓰게 다시 열어줄 때 사용한다.
 export async function clearNightStatus(
   studentId: string,
   studyDate: string,
@@ -67,30 +67,27 @@ export async function clearNightStatus(
   touch();
 }
 
-// 특정 차수의 학원 요일을 통째로 교체한다.
-export async function saveAcademyDays(studentId: string, session: number, weekdays: number[]) {
+// 학원 가는 요일을 통째로 교체한다.
+// 학원 가는 날에도 1차는 참석하므로 2·3차에만 기록한다.
+export async function saveAcademyDays(studentId: string, weekdays: number[]) {
   const me = await assertAdmin();
-  if (session < 1 || session > 3) throw new Error("올바르지 않은 차수입니다.");
-
   const supabase = createClient();
-  const clean = Array.from(new Set(weekdays)).filter((d) => d >= 1 && d <= 5);
 
-  const del = await supabase
-    .from("academy_schedules")
-    .delete()
-    .eq("student_id", studentId)
-    .eq("session", session);
+  const clean = Array.from(new Set(weekdays)).filter((d) => d >= 1 && d <= 4);
+
+  const del = await supabase.from("academy_schedules").delete().eq("student_id", studentId);
   if (del.error) throw new Error(del.error.message);
 
   if (clean.length > 0) {
-    const { error } = await supabase.from("academy_schedules").insert(
-      clean.map((weekday) => ({
+    const payload = clean.flatMap((weekday) =>
+      ACADEMY_SESSIONS.map((session) => ({
         student_id: studentId,
-        session,
         weekday,
+        session,
         created_by: me.id,
       }))
     );
+    const { error } = await supabase.from("academy_schedules").insert(payload);
     if (error) throw new Error(error.message);
   }
   touch();

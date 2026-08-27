@@ -57,6 +57,11 @@ export const SESSION_TIME: Record<Session, { start: number; end: number; label: 
 };
 
 /** CIP 운영 요일: 월~목 (금요일·주말은 없음) */
+/**
+ * 학원에 가는 차수. 학원 가는 날에도 1차는 참석하고 2·3차에 빠진다.
+ * 그래서 학원 스케줄은 요일만 지정하고 차수는 여기서 고정한다.
+ */
+export const ACADEMY_SESSIONS: readonly Session[] = [2, 3];
 export function isCipDay(weekday: number | null): boolean {
   return weekday !== null && weekday >= 1 && weekday <= 4;
 }

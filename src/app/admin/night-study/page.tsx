@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { NightStudyAdmin, type Row } from "@/components/NightStudyAdmin";
-import { todayISO, SESSIONS, type NightStatus } from "@/lib/night-study";
+import { todayISO, weekdayIndex, isCipDay, type NightStatus } from "@/lib/night-study";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "CIP 관리" };
 
 type StudentRow = {
   id: string;
@@ -22,13 +23,13 @@ type RecordRow = {
 
 type AcademyRow = {
   student_id: string;
-  session: number;
   weekday: number;
 };
 
 export default async function NightStudyPage() {
   const supabase = createClient();
   const today = todayISO();
+  const wd = weekdayIndex();
 
   const [{ data: studentsData }, { data: recordsData }, { data: acaData }] = await Promise.all([
     supabase
@@ -39,7 +40,7 @@ export default async function NightStudyPage() {
       .from("night_study_records")
       .select("student_id, session, status, reason, self_reported")
       .eq("study_date", today),
-    supabase.from("academy_schedules").select("student_id, session, weekday"),
+    supabase.from("academy_schedules").select("student_id, weekday"),
   ]);
 
   const students = (studentsData ?? []) as StudentRow[];
@@ -58,28 +59,22 @@ export default async function NightStudyPage() {
     recMap.set(r.student_id, cur);
   }
 
-  // student_id -> session -> 학원 요일 목록
-  const acaMap = new Map<string, Record<number, number[]>>();
+  // student_id -> 학원 가는 요일 목록 (차수는 2·3차로 고정이라 요일만 모은다)
+  const acaMap = new Map<string, number[]>();
   for (const a of academies) {
-    const cur = acaMap.get(a.student_id) ?? {};
-    cur[a.session] = [...(cur[a.session] ?? []), a.weekday];
+    const cur = acaMap.get(a.student_id) ?? [];
+    if (!cur.includes(a.weekday)) cur.push(a.weekday);
     acaMap.set(a.student_id, cur);
   }
 
-  const rows: Row[] = students.map((s) => {
-    const academy: Record<number, number[]> = {};
-    for (const n of SESSIONS) {
-      academy[n] = acaMap.get(s.id)?.[n] ?? [];
-    }
-    return {
-      id: s.id,
-      name: s.name,
-      student_number: s.student_number,
-      isIndependent: !!s.is_independent,
-      states: recMap.get(s.id) ?? {},
-      academy,
-    };
-  });
+  const rows: Row[] = students.map((s) => ({
+    id: s.id,
+    name: s.name,
+    student_number: s.student_number,
+    isIndependent: !!s.is_independent,
+    states: recMap.get(s.id) ?? {},
+    academyDays: (acaMap.get(s.id) ?? []).sort(),
+  }));
 
   return (
     <>
@@ -89,14 +84,21 @@ export default async function NightStudyPage() {
       <div className="mb-4 mt-2 flex items-center justify-between">
         <h1 className="text-lg font-semibold">🌙 CIP 관리</h1>
         <Link
-          href="/board/2/9"
+          href="/board/2/9/legacy"
           target="_blank"
           className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
         >
           전자칠판 열기 ↗
         </Link>
       </div>
-      <NightStudyAdmin rows={rows} date={today} />
+
+      {!isCipDay(wd) && (
+        <div className="mb-3 rounded-xl border border-line bg-surface-2 px-4 py-3 text-xs text-neutral-400">
+          오늘은 CIP 운영일이 아니에요. (월~목만 운영) 기록은 남길 수 있지만 학생은 신고할 수 없어요.
+        </div>
+      )}
+
+      <NightStudyAdmin rows={rows} date={today} weekday={wd} />
     </>
   );
 }
