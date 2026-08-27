@@ -9,7 +9,7 @@ import { useToast } from "@/components/Toast";
 export type DinnerRow = { meal_date: string; menu: string };
 
 const SAMPLE = `2026-09-01\t돈까스, 미소된장국, 양배추샐러드, 깍두기
-2026-09-02\t제육볶음, 콩나물국, 계란찜, 배추김치`;
+2026-09-02\t~쉐프특식~, 제육볶음, 콩나물국, 계란찜, 배추김치`;
 
 export function DinnerManager({ rows }: { rows: DinnerRow[] }) {
   const [text, setText] = useState("");
@@ -52,6 +52,10 @@ export function DinnerManager({ rows }: { rows: DinnerRow[] }) {
         <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
           한 줄에 하루씩, <span className="text-neutral-300">날짜 + 메뉴</span> 순서로 붙여넣으세요.
           엑셀에서 두 열을 복사하면 그대로 맞아요. 같은 날짜가 이미 있으면 덮어써요.
+        </p>
+        <p className="mt-1 text-xs text-neutral-500">
+          특식 이름처럼 눈에 띄게 하고 싶은 항목은{" "}
+          <span className="font-mono text-amber-300">~쉐프특식~</span> 처럼 물결로 감싸세요.
         </p>
 
         <textarea

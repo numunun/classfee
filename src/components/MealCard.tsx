@@ -15,14 +15,25 @@ function label(dateISO: string): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${day})`;
 }
 
+// ~특식 이름~ 처럼 물결로 감싼 항목은 강조해서 보여준다.
 function Dishes({ items }: { items: string[] }) {
   return (
     <ul className="mt-1.5 space-y-0.5">
-      {items.map((dish, i) => (
-        <li key={i} className="text-sm text-neutral-200">
-          {dish}
-        </li>
-      ))}
+      {items.map((dish, i) => {
+        const m = dish.match(/^~\s*(.+?)\s*~$/);
+        if (m) {
+          return (
+            <li key={i} className="text-sm font-bold text-amber-300">
+              {m[1]}
+            </li>
+          );
+        }
+        return (
+          <li key={i} className="text-sm text-neutral-200">
+            {dish}
+          </li>
+        );
+      })}
     </ul>
   );
 }
