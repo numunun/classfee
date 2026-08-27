@@ -48,6 +48,7 @@ export default async function AdminDashboard() {
         <Action href="/admin/fines" primary>＋ 새 벌금 부과</Action>
         <Action href="/admin/cleaning">청소 현황</Action>
         <Action href="/admin/night-study">CIP 관리</Action>
+        <Action href="/admin/meals">석식 관리</Action>
         <Action href="/admin/payments">입금 승인</Action>
         <Action href="/admin/students">학생 관리</Action>
         <Action href="/admin/settings">설정</Action>

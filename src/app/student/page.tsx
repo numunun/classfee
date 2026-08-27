@@ -12,6 +12,7 @@ import {
   todayISO,
   weekdayIndex,
   SESSIONS,
+  isCipDay,
   type NightStatus,
   type Session,
 } from "@/lib/night-study";
@@ -136,7 +137,16 @@ export default async function StudentPage() {
       ))}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-start">
-        <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />
+        {isCipDay(wd) ? (
+          <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />
+        ) : (
+          <section className="rounded-2xl bg-surface p-5">
+            <h2 className="font-medium">🌙 오늘 CIP</h2>
+            <p className="mt-2 text-sm text-neutral-500">
+              오늘은 CIP 운영일이 아니에요. (월~목만 운영)
+            </p>
+          </section>
+        )}
         <MealCard />
       </div>
 

@@ -56,6 +56,11 @@ export const SESSION_TIME: Record<Session, { start: number; end: number; label: 
   3: { start: 20 * 60 + 10, end: 21 * 60 + 0, label: "20:10–21:00" },
 };
 
+/** CIP 운영 요일: 월~목 (금요일·주말은 없음) */
+export function isCipDay(weekday: number | null): boolean {
+  return weekday !== null && weekday >= 1 && weekday <= 4;
+}
+
 /** 지금이 몇 차 시간인지. 어느 구간에도 없으면 null */
 export function liveSessionAt(minutesOfDay: number): Session | null {
   for (const n of SESSIONS) {
