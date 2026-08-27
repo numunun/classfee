@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  * Next.js 의 React 런타임 / Tailwind CSS 를 전혀 거치지 않고
  * 서버에서 만든 순수 HTML 문자열만 내려보낸다.
  * - 자바스크립트 0줄 (meta refresh 로 갱신)
- * - CSS 는 인라인 + 구형 문법만 (table 레이아웃, px, hex)
+ * - CSS 는 인라인 + 구형 문법만 (table 레이아웃, vh, hex)
  */
 
 type Snap = {
@@ -29,6 +29,9 @@ type Snap = {
 
 const COLS = 7;
 const MIN_SEATS = 35;
+
+// 표 전체 높이. 화면 아래가 잘리면 이 숫자를 줄이고, 여백이 남으면 늘린다.
+const TABLE_H = "72vh";
 
 // [배경, 글자, 테두리]
 const COLOR: Record<NightStatus, [string, string, string]> = {
@@ -103,26 +106,28 @@ export async function GET(
     "<title>CIP 현황판</title>" +
     "<style>" +
     // 세로 기준(vh)으로 크기를 잡아 항상 한 화면에 들어가게 한다.
+    // 표가 넘치면 위의 TABLE_H 숫자만 줄이면 된다.
     "html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;color:#eee;" +
     "font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}" +
-    ".wrap{height:100%;padding:1.2vh 1.2vw;box-sizing:border-box;}" +
-    "h1{margin:0;font-size:3.4vh;font-weight:bold;color:#fff;line-height:1.1;}" +
-    ".sub{margin:0.3vh 0 0 0;font-size:1.7vh;color:#999;}" +
-    ".tabs{margin:0.8vh 0 0 0;}" +
-    ".tab{display:inline-block;padding:0.4vh 1.4vh;margin-right:0.6vh;font-size:1.8vh;" +
+    "*{box-sizing:border-box;}" +
+    ".wrap{height:100%;padding:0.8vh 1vw;}" +
+    "h1{margin:0;font-size:2.8vh;font-weight:bold;color:#fff;line-height:1.1;}" +
+    ".sub{margin:0.2vh 0 0 0;font-size:1.5vh;color:#999;}" +
+    ".tabs{margin:0.5vh 0 0 0;}" +
+    ".tab{display:inline-block;padding:0.2vh 1.1vh;margin-right:0.5vh;font-size:1.5vh;" +
     "border:2px solid #333;color:#888;text-decoration:none;}" +
     ".tab-on{background:#fff;color:#000;border-color:#fff;font-weight:bold;}" +
     ".tab-live{border-color:#2e8b57;color:#7ee2a8;}" +
-    ".sum{margin:0.6vh 0 0 0;font-size:1.7vh;color:#bbb;}" +
-    "table{width:100%;height:78vh;border-collapse:separate;border-spacing:0.5vh;margin-top:0.6vh;" +
-    "table-layout:fixed;}" +
-    "td{width:14%;text-align:center;vertical-align:middle;padding:0.4vh 0.3vh;" +
+    ".sum{margin:0.4vh 0 0 0;font-size:1.5vh;color:#bbb;}" +
+    "table{width:100%;height:" + TABLE_H + ";border-collapse:separate;border-spacing:0.4vh;" +
+    "margin-top:0.4vh;table-layout:fixed;}" +
+    "td{width:14%;text-align:center;vertical-align:middle;padding:0.2vh 0.2vh;" +
     "border-width:2px;border-style:solid;overflow:hidden;}" +
-    ".no{font-size:1.3vh;color:#777;}" +
-    ".nm{font-size:2.7vh;font-weight:bold;color:#fff;margin-top:0.3vh;" +
+    ".no{font-size:1.2vh;color:#777;line-height:1.2;}" +
+    ".nm{font-size:2.3vh;font-weight:bold;color:#fff;margin-top:0.2vh;line-height:1.2;" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
-    ".st{font-size:1.8vh;margin-top:0.4vh;}" +
-    ".rs{font-size:1.3vh;color:#999;margin-top:0.2vh;" +
+    ".st{font-size:1.6vh;margin-top:0.2vh;line-height:1.2;}" +
+    ".rs{font-size:1.2vh;color:#999;margin-top:0.1vh;line-height:1.2;" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
     ".empty{border-color:#222;color:#333;}" +
     "</style></head><body><div class=\"wrap\">";
