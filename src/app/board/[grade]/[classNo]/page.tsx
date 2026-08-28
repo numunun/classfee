@@ -107,7 +107,7 @@ export default async function BoardPage({
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden px-[1.5vw] py-[1.2vh]">
-      <AutoRefresh seconds={60} />
+      <AutoRefresh seconds={15} />
 
       <header className="flex shrink-0 flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <div>

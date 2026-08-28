@@ -84,7 +84,7 @@ export default async function NightStudyPage() {
       <div className="mb-4 mt-2 flex items-center justify-between">
         <h1 className="text-lg font-semibold">🌙 CIP 관리</h1>
         <Link
-          href="/board/2/9/legacy"
+          href="/board/2/9"
           target="_blank"
           className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
         >

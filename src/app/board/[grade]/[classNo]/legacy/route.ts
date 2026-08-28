@@ -32,6 +32,8 @@ const MIN_SEATS = 35;
 
 // 표 전체 높이. 화면 아래가 잘리면 이 숫자를 줄이고, 여백이 남으면 늘린다.
 const TABLE_H = "72vh";
+// 자동 갱신 주기(초). 자바스크립트를 못 쓰는 브라우저라 meta refresh 로만 갱신한다.
+const REFRESH_SEC = 15;
 
 // [배경, 글자, 테두리]
 const COLOR: Record<NightStatus, [string, string, string]> = {
@@ -102,7 +104,7 @@ export async function GET(
     '<html lang="ko"><head>' +
     '<meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<meta http-equiv="refresh" content="60;url=' + esc(refreshTarget) + '">' +
+    '<meta http-equiv="refresh" content="' + REFRESH_SEC + ';url=' + esc(refreshTarget) + '">' +
     "<title>CIP 현황판</title>" +
     "<style>" +
     // 세로 기준(vh)으로 크기를 잡아 항상 한 화면에 들어가게 한다.

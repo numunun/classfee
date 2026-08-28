@@ -160,25 +160,74 @@ export async function decidePayment(
 }
 
 // ---------- 학생 추가 / 역할 변경 ----------
-export async function addStudent(formData: FormData) {
+// 서버 액션이 throw 하면 프로덕션에서 메시지가 가려지므로, 실패도 값으로 돌려준다.
+export type ActionResult = { ok: true } | { ok: false; message: string };
+
+export async function addStudent(formData: FormData): Promise<ActionResult> {
   await assertAdmin();
+
+  const numberRaw = String(formData.get("number") || "").trim();
+  const name = String(formData.get("name") || "").trim();
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const role = String(formData.get("role")) === "admin" ? "admin" : "student";
+
+  if (!name) return { ok: false, message: "이름을 입력하세요." };
+  if (!email) return { ok: false, message: "이메일을 입력하세요." };
+
+  let studentNumber: number | null = null;
+  if (numberRaw) {
+    const n = Number(numberRaw);
+    if (!Number.isInteger(n) || n < 10101 || n > 69999) {
+      return { ok: false, message: "학번을 올바르게 입력하세요. (예: 20935)" };
+    }
+    studentNumber = n;
+  }
+
   const supabase = createClient();
   const { error } = await supabase.from("students").insert({
-    student_number: Number(formData.get("number")) || null,
-    name: String(formData.get("name")),
-    google_email: String(formData.get("email")).toLowerCase(),
-    role: (formData.get("role") as string) === "admin" ? "admin" : "student",
+    student_number: studentNumber,
+    name,
+    google_email: email,
+    role,
   });
-  if (error) throw new Error(error.message);
+
+  if (error) {
+    // 23505 = unique_violation
+    if (error.code === "23505") {
+      const dup = error.message.includes("student_number") ? "학번" : "이메일";
+      return { ok: false, message: `이미 등록된 ${dup}입니다.` };
+    }
+    return { ok: false, message: error.message };
+  }
+
   revalidatePath("/admin/students");
+  return { ok: true };
 }
 
-export async function setRole(studentId: string, role: "student" | "admin") {
-  await assertAdmin();
+export async function setRole(
+  studentId: string,
+  role: "student" | "admin"
+): Promise<ActionResult> {
+  const me = await assertAdmin();
+
+  // 마지막 관리자가 스스로 권한을 내리면 아무도 관리할 수 없게 된다.
+  if (role === "student" && studentId === me.id) {
+    const supabase = createClient();
+    const { count } = await supabase
+      .from("students")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin");
+    if ((count ?? 0) <= 1) {
+      return { ok: false, message: "마지막 관리자는 권한을 내릴 수 없어요." };
+    }
+  }
+
   const supabase = createClient();
   const { error } = await supabase.from("students").update({ role }).eq("id", studentId);
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, message: error.message };
+
   revalidatePath("/admin/students");
+  return { ok: true };
 }
 
 // ---------- 설정 저장 ----------

@@ -105,12 +105,19 @@ export function seatNo(studentNumber: number | null): number | null {
 
 /** JS getDay(0=일) -> 1=월 … 5=금, 주말이면 null */
 export function weekdayIndex(d = new Date()): number | null {
-  const g = d.getDay();
-  return g >= 1 && g <= 5 ? g : null;
+  const wd = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    weekday: "short",
+  }).format(d);
+  const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
+  return map[wd] ?? null;
 }
 
 export function todayISO(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }

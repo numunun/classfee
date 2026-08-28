@@ -70,7 +70,7 @@ export function SettingsForm({ s }: { s: Settings }) {
           </div>
         </div>
         <p className="text-xs text-neutral-500">
-          NEIS 학교기본정보 API 로 조회한 값이에요. 비워두면 급식이 표시되지 않아요.
+          NEIS 학교기본정보 API로 조회한 값이에요. 비워두면 급식이 표시되지 않아요.
         </p>
       </Card>
 
