@@ -5,6 +5,7 @@ import { PageShell } from "@/components/PageShell";
 import { StudentPayment } from "@/components/StudentPayment";
 import { MealCard } from "@/components/MealCard";
 import { PenaltyStatus } from "@/components/PenaltyStatus";
+import { NoticeBoard } from "@/components/NoticeBoard";
 import { NightStudyReport, type SessionState } from "@/components/NightStudyReport";
 import { FINE_TYPE_LABEL, payable, won, type Fine } from "@/lib/types";
 import { getSettings } from "@/lib/settings";
@@ -33,7 +34,6 @@ export default async function StudentPage() {
       .from("fines")
       .select("*")
       .eq("student_id", me.id)
-      .is("deleted_at", null)
       .order("occurred_date", { ascending: false }),
     supabase
       .from("payment_requests")
@@ -105,13 +105,15 @@ export default async function StudentPage() {
     );
   }
 
-  const owing = fines.filter((f) =>
+  // 취소된 건은 합계에서 빼고 목록에만 「취소됨」으로 남긴다.
+  const live = fines.filter((f) => !f.deleted_at);
+  const owing = live.filter((f) =>
     ["unpaid", "doubled", "pending_approval"].includes(f.status)
   );
   const owingTotal = owing.reduce((a, f) => a + payable(f), 0);
-  const cumulativeTotal = fines.reduce((a, f) => a + payable(f), 0);
+  const cumulativeTotal = live.reduce((a, f) => a + payable(f), 0);
 
-  const selectable = fines.filter((f) => f.status === "unpaid" || f.status === "doubled");
+  const selectable = live.filter((f) => f.status === "unpaid" || f.status === "doubled");
   const nextDue = selectable.map((f) => f.due_date).sort().at(0);
 
   return (
@@ -119,6 +121,10 @@ export default async function StudentPage() {
       <TopBar title="내 학급" who={me.name} isAdmin={me.role === "admin"} here="student" />
 
       <div className="mt-4">
+        <NoticeBoard />
+      </div>
+
+      <div className="mt-3">
         <PenaltyStatus total={cumulativeTotal} />
       </div>
 
@@ -181,6 +187,23 @@ export default async function StudentPage() {
         <h2 className="mb-2 text-sm font-medium text-neutral-300">부과 내역</h2>
         <ul className="space-y-2">
           {fines.map((f) => {
+            if (f.deleted_at) {
+              return (
+                <li key={f.id} className="rounded-xl border-l-4 border-l-neutral-800 bg-surface p-3.5 opacity-50">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium line-through">
+                      {FINE_TYPE_LABEL[f.type]}
+                    </span>
+                    <span className="text-sm font-semibold line-through">{won(payable(f))}</span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-neutral-500">
+                    {f.reason ? f.reason + " · " : ""}
+                    {ko(f.occurred_date)} 부과
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-400">취소됨</p>
+                </li>
+              );
+            }
             const tone =
               f.status === "unpaid" || f.status === "doubled"
                 ? "border-l-red-500 bg-red-950/40"

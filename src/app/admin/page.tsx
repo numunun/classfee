@@ -4,7 +4,7 @@ import { requireStudent } from "@/lib/auth";
 import { TopBar } from "@/components/TopBar";
 import { Avatar } from "@/components/Avatar";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DeleteFineButton } from "@/components/DeleteFineButton";
+import { CancelFineButton } from "@/components/CancelFineButton";
 import { FINE_TYPE_LABEL, payable, won, shortDate, type Fine, type FineType } from "@/lib/types";
 
 type Row = Fine & { students: { name: string } | null };
@@ -46,6 +46,7 @@ export default async function AdminDashboard() {
 
       <nav className="mt-4 flex flex-wrap gap-2">
         <Action href="/admin/fines" primary>＋ 새 벌금 부과</Action>
+        <Action href="/admin/notices">공지</Action>
         <Action href="/admin/cleaning">청소 현황</Action>
         <Action href="/admin/night-study">CIP 관리</Action>
         <Action href="/admin/meals">석식 관리</Action>
@@ -75,7 +76,7 @@ export default async function AdminDashboard() {
               </div>
               <StatusBadge status={f.status} />
               <span className="w-16 text-right text-sm font-medium">{won(payable(f))}</span>
-              <DeleteFineButton fineId={f.id} />
+              <CancelFineButton fineId={f.id} />
             </li>
           ))}
           {fines.length === 0 && (
