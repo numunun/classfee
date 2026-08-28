@@ -47,7 +47,15 @@ export default async function PaymentsPage() {
   return (
     <>
       <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>
-      <h1 className="mb-4 mt-2 flex items-center gap-2 text-lg font-semibold">📷 입금 승인 대기</h1>
+      <div className="mb-4 mt-2 flex items-center justify-between gap-3">
+        <h1 className="flex items-center gap-2 text-lg font-semibold">📷 입금 승인 대기</h1>
+        <Link
+          href="/admin/payments/history"
+          className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
+        >
+          처리 내역 →
+        </Link>
+      </div>
 
       {reqs.length === 0 && (
         <p className="rounded-2xl bg-surface px-4 py-8 text-center text-sm text-neutral-500">

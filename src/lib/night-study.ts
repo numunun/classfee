@@ -47,7 +47,11 @@ export const REASON_PLACEHOLDER: Record<ReasonType, string> = {
 /** CIP 차수 */
 export const SESSIONS = [1, 2, 3] as const;
 export type Session = (typeof SESSIONS)[number];
-export const SESSION_LABEL: Record<Session, string> = { 1: "1차", 2: "2차", 3: "3차" };
+export const SESSION_LABEL: Record<Session, string> = {
+  1: "1차",
+  2: "2차",
+  3: "3차",
+};
 
 /** CIP 차수별 운영 시간 (분 단위, 0시 기준) */
 export const SESSION_TIME: Record<Session, { start: number; end: number; label: string }> = {
@@ -56,12 +60,13 @@ export const SESSION_TIME: Record<Session, { start: number; end: number; label: 
   3: { start: 20 * 60 + 10, end: 21 * 60 + 0, label: "20:10–21:00" },
 };
 
-/** CIP 운영 요일: 월~목 (금요일·주말은 없음) */
 /**
  * 학원에 가는 차수. 학원 가는 날에도 1차는 참석하고 2·3차에 빠진다.
  * 그래서 학원 스케줄은 요일만 지정하고 차수는 여기서 고정한다.
  */
 export const ACADEMY_SESSIONS: readonly Session[] = [2, 3];
+
+/** CIP 운영 요일: 월~목 (금요일·주말은 없음) */
 export function isCipDay(weekday: number | null): boolean {
   return weekday !== null && weekday >= 1 && weekday <= 4;
 }
@@ -103,16 +108,11 @@ export function seatNo(studentNumber: number | null): number | null {
   return studentNumber == null ? null : studentNumber % 100;
 }
 
-/** JS getDay(0=일) -> 1=월 … 5=금, 주말이면 null */
-export function weekdayIndex(d = new Date()): number | null {
-  const wd = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Seoul",
-    weekday: "short",
-  }).format(d);
-  const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
-  return map[wd] ?? null;
-}
-
+/**
+ * 한국 시각 기준 오늘 (YYYY-MM-DD).
+ * Vercel 은 리전과 무관하게 프로세스 시간대가 UTC 라서
+ * new Date().getDate() 를 쓰면 한국 자정~오전 9시 사이에 하루가 밀린다.
+ */
 export function todayISO(): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Seoul",
@@ -120,4 +120,14 @@ export function todayISO(): string {
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+}
+
+/** 한국 시각 기준 요일. 1=월 … 5=금, 주말이면 null */
+export function weekdayIndex(d = new Date()): number | null {
+  const wd = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    weekday: "short",
+  }).format(d);
+  const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5 };
+  return map[wd] ?? null;
 }

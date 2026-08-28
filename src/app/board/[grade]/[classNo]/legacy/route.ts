@@ -13,10 +13,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * 구형 브라우저(전자칠판)용 현황판.
- * Next.js 의 React 런타임 / Tailwind CSS 를 전혀 거치지 않고
- * 서버에서 만든 순수 HTML 문자열만 내려보낸다.
- * - 자바스크립트 0줄 (meta refresh 로 갱신)
- * - CSS 는 인라인 + 구형 문법만 (table 레이아웃, vh, hex)
+ * React 런타임 / Tailwind 를 거치지 않고 서버에서 만든 HTML 만 내려보낸다.
+ * 대상은 Opera 51 = Chromium 64 이므로
+ * clamp() / gap / dvh / 공백구분 rgb() 만 피하면 대부분의 CSS 는 쓸 수 있다.
  */
 
 type Snap = {
@@ -30,19 +29,17 @@ type Snap = {
 const COLS = 7;
 const MIN_SEATS = 35;
 
-// 표 전체 높이. 화면 아래가 잘리면 이 숫자를 줄이고, 여백이 남으면 늘린다.
-const TABLE_H = "72vh";
 // 자동 갱신 주기(초). 자바스크립트를 못 쓰는 브라우저라 meta refresh 로만 갱신한다.
 const REFRESH_SEC = 15;
 
-// [배경, 글자, 테두리]
-const COLOR: Record<NightStatus, [string, string, string]> = {
-  present: ["#0d2818", "#7ee2a8", "#1f5c3a"],
-  independent: ["#0b2a24", "#6fe0c4", "#1c5c50"],
-  academy: ["#2b2109", "#f0c674", "#6b5312"],
-  hospital: ["#2b1216", "#f09aa8", "#6b2c36"],
-  special: ["#1e1430", "#c4a8f0", "#4a3374"],
-  other: ["#1f1f22", "#c8c8cc", "#44444a"],
+// [카드배경, 강조색, 테두리, 배지배경]
+const COLOR: Record<NightStatus, [string, string, string, string]> = {
+  present:     ["rgba(16,64,38,0.55)",  "#6ee7a8", "rgba(52,168,110,0.45)", "rgba(52,168,110,0.18)"],
+  independent: ["rgba(12,60,54,0.55)",  "#5eead4", "rgba(45,168,152,0.45)", "rgba(45,168,152,0.18)"],
+  academy:     ["rgba(66,50,10,0.55)",  "#fbbf5e", "rgba(190,140,40,0.45)", "rgba(190,140,40,0.18)"],
+  hospital:    ["rgba(66,20,28,0.55)",  "#fb8ca0", "rgba(200,70,95,0.45)",  "rgba(200,70,95,0.18)"],
+  special:     ["rgba(44,28,72,0.55)",  "#c4a2fb", "rgba(140,95,220,0.45)", "rgba(140,95,220,0.18)"],
+  other:       ["rgba(38,38,44,0.6)",   "#cfcfd6", "rgba(120,120,132,0.4)", "rgba(120,120,132,0.16)"],
 };
 
 function esc(s: string): string {
@@ -95,49 +92,73 @@ export async function GET(
     supabase.rpc("board_meta"),
   ]);
 
-  // 자동 갱신 주소 (선택한 차수를 명시하지 않으면 시간에 따라 자동 전환)
   const refreshTarget =
     "?" + (explicit ? "s=" + explicit + "&" : "") + (code ? "k=" + encodeURIComponent(code) : "");
 
   const head =
-    '<!DOCTYPE html>' +
+    "<!DOCTYPE html>" +
     '<html lang="ko"><head>' +
     '<meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<meta http-equiv="refresh" content="' + REFRESH_SEC + ';url=' + esc(refreshTarget) + '">' +
     "<title>CIP 현황판</title>" +
+    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">' +
     "<style>" +
-    // 세로 기준(vh)으로 크기를 잡아 항상 한 화면에 들어가게 한다.
-    // 표가 넘치면 위의 TABLE_H 숫자만 줄이면 된다.
-    "html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#000;color:#eee;" +
-    "font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;}" +
-    "*{box-sizing:border-box;}" +
-    ".wrap{height:100%;padding:0.8vh 1vw;}" +
-    "h1{margin:0;font-size:2.8vh;font-weight:bold;color:#fff;line-height:1.1;}" +
-    ".sub{margin:0.2vh 0 0 0;font-size:1.5vh;color:#999;}" +
-    ".tabs{margin:0.5vh 0 0 0;}" +
-    ".tab{display:inline-block;padding:0.2vh 1.1vh;margin-right:0.5vh;font-size:1.5vh;" +
-    "border:2px solid #333;color:#888;text-decoration:none;}" +
-    ".tab-on{background:#fff;color:#000;border-color:#fff;font-weight:bold;}" +
-    ".tab-live{border-color:#2e8b57;color:#7ee2a8;}" +
-    ".sum{margin:0.4vh 0 0 0;font-size:1.5vh;color:#bbb;}" +
-    "table{width:100%;height:" + TABLE_H + ";border-collapse:separate;border-spacing:0.4vh;" +
-    "margin-top:0.4vh;table-layout:fixed;}" +
-    "td{width:14%;text-align:center;vertical-align:middle;padding:0.2vh 0.2vh;" +
-    "border-width:2px;border-style:solid;overflow:hidden;}" +
-    ".no{font-size:1.2vh;color:#777;line-height:1.2;}" +
-    ".nm{font-size:2.3vh;font-weight:bold;color:#fff;margin-top:0.2vh;line-height:1.2;" +
+    // Chromium 64(Opera 51) 기준. clamp()/gap/dvh/공백구분 rgb() 는 피하고
+    // grid-gap, rgba(), 그라디언트, 그림자, 트랜지션은 모두 지원되므로 활용한다.
+    "*{box-sizing:border-box;margin:0;padding:0;}" +
+    "html,body{height:100%;overflow:hidden;background:#07070a;color:#e9e9ee;" +
+    "font-family:Pretendard,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;" +
+    "-webkit-font-smoothing:antialiased;}" +
+    "body{background-image:radial-gradient(circle at 15% -10%,rgba(46,120,200,0.16),transparent 55%)," +
+    "radial-gradient(circle at 90% 0%,rgba(120,60,190,0.13),transparent 50%);}" +
+    ".wrap{height:100%;padding:2.2vh 2vw;display:-webkit-box;display:flex;" +
+    "-webkit-box-orient:vertical;flex-direction:column;}" +
+
+    ".top{display:flex;align-items:flex-end;justify-content:space-between;}" +
+    ".ttl{font-size:3.4vh;font-weight:800;letter-spacing:-0.02em;color:#fff;line-height:1.05;}" +
+    ".sub{margin-top:0.5vh;font-size:1.6vh;color:#8a8a96;letter-spacing:0.01em;}" +
+    ".rt{text-align:right;}" +
+
+    ".tabs{white-space:nowrap;}" +
+    ".tab{display:inline-block;padding:0.7vh 1.8vh;margin-left:0.6vh;font-size:1.7vh;font-weight:700;" +
+    "border-radius:999px;border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.03);" +
+    "color:#6f6f7c;text-decoration:none;transition:all .18s ease;}" +
+    ".tab-on{background:#fff;border-color:#fff;color:#0b0b0f;" +
+    "box-shadow:0 0.4vh 1.6vh rgba(255,255,255,0.18);}" +
+    ".tab-live{border-color:rgba(52,168,110,0.6);color:#6ee7a8;background:rgba(52,168,110,0.1);}" +
+    ".dot{display:inline-block;width:0.8vh;height:0.8vh;margin-left:0.6vh;border-radius:50%;" +
+    "background:#34d17e;vertical-align:middle;}" +
+
+    ".sum{margin-top:1.2vh;white-space:nowrap;}" +
+    ".chip{display:inline-block;margin-right:0.8vh;padding:0.5vh 1.4vh;border-radius:999px;" +
+    "font-size:1.5vh;font-weight:700;border:1px solid;}" +
+
+    ".grid{margin-top:1.6vh;display:-ms-grid;display:grid;" +
+    "grid-template-columns:repeat(7,1fr);grid-gap:1vh;-webkit-box-flex:1;flex:1;min-height:0;}" +
+    ".cell{border-radius:1.4vh;border:1px solid;padding:1vh 0.6vh;text-align:center;" +
+    "display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;" +
+    "-webkit-box-pack:center;justify-content:center;overflow:hidden;" +
+    "box-shadow:0 0.3vh 1.2vh rgba(0,0,0,0.35);animation:pop .35s ease both;}" +
+    ".no{font-size:1.25vh;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.06em;}" +
+    ".nm{margin-top:0.4vh;font-size:2.6vh;font-weight:800;color:#fff;letter-spacing:-0.02em;" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
-    ".st{font-size:1.6vh;margin-top:0.2vh;line-height:1.2;}" +
-    ".rs{font-size:1.2vh;color:#999;margin-top:0.1vh;line-height:1.2;" +
+    ".st{margin-top:0.7vh;display:inline-block;padding:0.3vh 1.1vh;border-radius:999px;" +
+    "font-size:1.45vh;font-weight:700;}" +
+    ".rs{margin-top:0.5vh;font-size:1.2vh;color:rgba(255,255,255,0.45);" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
-    ".empty{border-color:#222;color:#333;}" +
+    ".empty{border:1px dashed rgba(255,255,255,0.06);border-radius:1.4vh;" +
+    "display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;" +
+    "-webkit-box-align:center;align-items:center;}" +
+    ".empty .no{color:rgba(255,255,255,0.14);}" +
+
+    "@keyframes pop{from{opacity:0;transform:translateY(0.8vh);}to{opacity:1;transform:none;}}" +
     "</style></head><body><div class=\"wrap\">";
 
   if (error) {
     const body =
-      '<h1 style="color:#f09aa8">현황판을 열 수 없습니다</h1>' +
-      '<p class="sub">' + esc(error.message) + "</p>";
+      '<div class="ttl" style="color:#fb8ca0">현황판을 열 수 없습니다</div>' +
+      '<div class="sub">' + esc(error.message) + "</div>";
     return new Response(head + body + "</div></body></html>", {
       headers: { "content-type": "text/html; charset=utf-8" },
     });
@@ -150,6 +171,8 @@ export async function GET(
     bySeat[r.seat_no] = r;
     if (r.seat_no > maxSeat) maxSeat = r.seat_no;
   }
+  // 7열 격자를 가득 채우도록 마지막 줄까지 칸을 만든다
+  const cellCount = Math.ceil(maxSeat / COLS) * COLS;
 
   const label =
     (Array.isArray(meta) && meta[0] && meta[0].class_label) || grade + "학년 " + classNo + "반";
@@ -163,44 +186,57 @@ export async function GET(
     if (n === session) cls += " tab-on";
     else if (n === live) cls += " tab-live";
     const href = "?s=" + n + (code ? "&k=" + encodeURIComponent(code) : "");
-    tabs += '<a class="' + cls + '" href="' + esc(href) + '">' + SESSION_LABEL[n] + "</a>";
+    tabs +=
+      '<a class="' + cls + '" href="' + esc(href) + '">' +
+      SESSION_LABEL[n] +
+      (n === live ? '<span class="dot"></span>' : "") +
+      "</a>";
   }
 
-  // 상태별 인원
+  // 상태별 인원 칩
   const counts: Record<string, number> = {};
   for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
   const order: NightStatus[] = ["present", "independent", "academy", "hospital", "special", "other"];
-  const summary = order
-    .filter((k) => counts[k])
-    .map((k) => NS_LABEL[k] + " " + counts[k] + "명")
-    .join("  ·  ");
+  let chips = "";
+  for (const k of order) {
+    if (!counts[k]) continue;
+    const c = COLOR[k];
+    chips +=
+      '<span class="chip" style="background:' + c[3] + ";border-color:" + c[2] + ";color:" + c[1] + '">' +
+      NS_LABEL[k] + " " + counts[k] +
+      "</span>";
+  }
 
-  // 좌석 표
+  // 좌석 카드
   let cells = "";
-  for (let n = 1; n <= maxSeat; n++) {
-    if (n % COLS === 1) cells += "<tr>";
+  for (let n = 1; n <= cellCount; n++) {
     const r = bySeat[n];
     if (!r) {
-      cells += '<td class="empty"><div class="no">' + n + "번</div></td>";
-    } else {
-      const c = COLOR[r.status] || COLOR.other;
-      cells +=
-        '<td style="background:' + c[0] + ";border-color:" + c[2] + '">' +
-        '<div class="no">' + n + "번</div>" +
-        '<div class="nm">' + esc(r.name) + "</div>" +
-        '<div class="st" style="color:' + c[1] + '">' + NS_LABEL[r.status] + "</div>" +
-        (r.reason ? '<div class="rs">' + esc(r.reason) + "</div>" : "") +
-        "</td>";
+      cells += '<div class="empty"><span class="no">' + n + "</span></div>";
+      continue;
     }
-    if (n % COLS === 0 || n === maxSeat) cells += "</tr>";
+    const c = COLOR[r.status] || COLOR.other;
+    cells +=
+      '<div class="cell" style="background:' + c[0] + ";border-color:" + c[2] +
+      ";animation-delay:" + (n * 12) + 'ms">' +
+      '<div class="no">' + n + "번</div>" +
+      '<div class="nm">' + esc(r.name) + "</div>" +
+      '<div><span class="st" style="background:' + c[3] + ";color:" + c[1] + '">' +
+      NS_LABEL[r.status] + "</span></div>" +
+      (r.reason ? '<div class="rs">' + esc(r.reason) + "</div>" : "") +
+      "</div>";
   }
 
   const body =
-    "<h1>" + esc(label) + " CIP 현황</h1>" +
-    '<p class="sub">' + esc(dateLine()) + " 기준</p>" +
-    '<div class="tabs">' + tabs + "</div>" +
-    '<p class="sum">' + summary + "</p>" +
-    "<table>" + cells + "</table>";
+    '<div class="top">' +
+    "<div>" +
+    '<div class="ttl">' + esc(label) + " CIP 현황</div>" +
+    '<div class="sub">' + esc(dateLine()) + "</div>" +
+    "</div>" +
+    '<div class="rt"><div class="tabs">' + tabs + "</div>" +
+    '<div class="sum">' + chips + "</div></div>" +
+    "</div>" +
+    '<div class="grid">' + cells + "</div>";
 
   return new Response(head + body + "</div></body></html>", {
     headers: {
