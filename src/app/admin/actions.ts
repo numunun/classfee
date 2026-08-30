@@ -22,59 +22,6 @@ function addDays(dateStr: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-// ---------- 수면 벌금 ----------
-export async function createSleepFine(formData: FormData) {
-  const me = await assertAdmin();
-  const supabase = createClient();
-  const s = await getSettings();
-
-  const studentId = String(formData.get("studentId"));
-  const occurred = String(formData.get("occurredDate"));
-  const periods = (formData.getAll("periods") as string[]).map(Number).filter(Boolean);
-  const sleepCount = Number(formData.get("sleepCount") || 1);
-  const file = formData.get("photo") as File | null;
-
-  if (!studentId || periods.length === 0) throw new Error("학생과 교시를 선택하세요");
-  if (!file || file.size === 0) throw new Error("증거 사진을 첨부하세요");
-
-  const amount = periods.length * s.sleep_fine_unit; // 금액은 서버가 계산
-
-  // 증거 사진 업로드 (선택)
-  let photoPath: string | null = null;
-  if (file && file.size > 0) {
-    if (!file.type.startsWith("image/")) throw new Error("이미지 파일만 업로드할 수 있어요");
-    if (file.size > 8 * 1024 * 1024) throw new Error("사진은 8MB 이하여야 해요");
-    const path = `${studentId}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from("evidence").upload(path, file);
-    if (error) throw new Error("사진 업로드 실패: " + error.message);
-    photoPath = path;
-  }
-
-  const { data: fine, error: fErr } = await supabase
-    .from("fines")
-    .insert({
-      student_id: studentId,
-      type: "sleep",
-      amount,
-      reason: `${periods.join(", ")}교시`,
-      occurred_date: occurred,
-      due_date: addDays(occurred, s.payment_deadline_days),
-      created_by: me.id,
-    })
-    .select("id")
-    .single();
-  if (fErr) throw new Error(fErr.message);
-
-  await supabase.from("sleep_fine_details").insert({
-    fine_id: fine.id,
-    periods,
-    sleep_count: sleepCount,
-    evidence_photo_url: photoPath,
-  });
-
-  revalidatePath("/admin");
-}
-
 // ---------- 지각 벌금 ----------
 export async function createLateFine(formData: FormData) {
   const me = await assertAdmin();
@@ -91,6 +38,35 @@ export async function createLateFine(formData: FormData) {
     type: "late",
     amount: s.late_fine_amount,
     reason: reason || "지각",
+    occurred_date: occurred,
+    due_date: addDays(occurred, s.payment_deadline_days),
+    created_by: me.id,
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin");
+}
+
+// ---------- 기타 벌금 (금액을 직접 입력) ----------
+export async function createOtherFine(formData: FormData) {
+  const me = await assertAdmin();
+  const supabase = createClient();
+  const s = await getSettings();
+
+  const studentId = String(formData.get("studentId"));
+  const occurred = String(formData.get("occuredDate"));
+  const reason = String(formData.get("reason") || "").trim();
+  const amount = Number(formData.get("amount") || 0);
+
+  if (!studentId) throw new Error("학생을 선택하세요.");
+  if (!reason) throw new Error("사유를 입력하세요.");
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error("금액을 올바르게 입력하세요.");
+  if (amount > 100000) throw new Error("금액이 너무 큽니다.");
+
+  const { error } = await supabase.from("fines").insert({
+    student_id: studentId,
+    type: "other",
+    amount: Math.round(amount),
+    reason,
     occurred_date: occurred,
     due_date: addDays(occurred, s.payment_deadline_days),
     created_by: me.id,

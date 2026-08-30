@@ -1,14 +1,14 @@
 export const SCHOOL_DOMAIN = process.env.NEXT_PUBLIC_SCHOOL_DOMAIN || "";
 
 export type Role = "student" | "admin";
-export type FineType = "sleep" | "late" | "cleaning";
+export type FineType = "late" | "cleaning" | "other";
 export type FineStatus = "unpaid" | "pending_approval" | "paid" | "doubled";
 export type PaymentStatus = "pending" | "approved" | "rejected";
 
 export const FINE_TYPE_LABEL: Record<FineType, string> = {
-  sleep: "수업 시간 수면",
   late: "지각",
   cleaning: "청소 불참",
+  other: "기타",
 };
 
 export const FINE_STATUS_LABEL: Record<FineStatus, string> = {
@@ -35,7 +35,6 @@ export interface Settings {
   account_bank: string;
   account_number: string;
   account_holder: string;
-  sleep_fine_unit: number;
   late_fine_amount: number;
   cleaning_fine_amount: number;
   neis_atpt_code: string;

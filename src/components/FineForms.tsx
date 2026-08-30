@@ -2,32 +2,26 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { createSleepFine, createLateFine } from "@/app/admin/actions";
+import { createLateFine, createOtherFine } from "@/app/admin/actions";
 import { useToast } from "@/components/Toast";
 import { won, type Student } from "@/lib/types";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function FineForms({
-  students,
-  sleepUnit,
-  lateAmount,
-}: {
-  students: Pick<Student, "id" | "name" | "student_number">[];
-  sleepUnit: number;
-  lateAmount: number;
-}) {
-  const [tab, setTab] = useState<"sleep" | "late">("sleep");
+type Opt = Pick<Student, "id" | "name" | "student_number">;
+
+export function FineForms({ students, lateAmount }: { students: Opt[]; lateAmount: number }) {
+  const [tab, setTab] = useState<"late" | "other">("late");
   return (
     <>
       <div className="mb-4 flex gap-2">
-        <Tab active={tab === "sleep"} onClick={() => setTab("sleep")}>🌙 수면</Tab>
         <Tab active={tab === "late"} onClick={() => setTab("late")}>⏰ 지각</Tab>
+        <Tab active={tab === "other"} onClick={() => setTab("other")}>✏️ 기타</Tab>
       </div>
-      {tab === "sleep" ? (
-        <SleepForm students={students} sleepUnit={sleepUnit} />
-      ) : (
+      {tab === "late" ? (
         <LateForm students={students} lateAmount={lateAmount} />
+      ) : (
+        <OtherForm students={students} />
       )}
       <p className="mt-4 text-center text-xs text-neutral-500">
         청소 불참 벌금은 <a href="/admin/cleaning" className="text-blue-400">청소 현황</a>에서 자동 처리돼요.
@@ -40,7 +34,7 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className={`rounded-xl px-4 py-2 text-sm font-medium ${
+      className={`h-11 rounded-xl px-4 text-sm font-medium ${
         active ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-300"
       }`}
     >
@@ -49,11 +43,11 @@ function Tab({ active, onClick, children }: { active: boolean; onClick: () => vo
   );
 }
 
-function StudentSelect({ students }: { students: { id: string; name: string; student_number: number | null }[] }) {
+function StudentSelect({ students }: { students: Opt[] }) {
   return (
     <div>
-      <label>학생 선택</label>
-      <select name="studentId" defaultValue="" required className="mt-1.5">
+      <label htmlFor="studentId">학생 선택</label>
+      <select id="studentId" name="studentId" defaultValue="" required className="mt-1.5">
         <option value="" disabled>학생을 선택하세요</option>
         {students.map((s) => (
           <option key={s.id} value={s.id}>
@@ -65,109 +59,7 @@ function StudentSelect({ students }: { students: { id: string; name: string; stu
   );
 }
 
-function SleepForm({
-  students,
-  sleepUnit,
-}: {
-  students: { id: string; name: string; student_number: number | null }[];
-  sleepUnit: number;
-}) {
-  const [periods, setPeriods] = useState<number[]>([]);
-  const [pending, setPending] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const toast = useToast();
-  const router = useRouter();
-  const amount = periods.length * sleepUnit;
-
-  function toggle(p: number) {
-    setPeriods((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
-  }
-
-  return (
-    <form
-      ref={formRef}
-      action={async (fd) => {
-        setPending(true);
-        try {
-          await createSleepFine(fd);
-          formRef.current?.reset();
-          setPeriods([]);
-          toast("수면 벌금을 부과했어요.");
-          router.push("/admin");
-        } catch (e) {
-          toast((e as Error).message, "error");
-        } finally {
-          setPending(false);
-        }
-      }}
-      className="space-y-4 rounded-2xl bg-surface p-5"
-    >
-      <h2 className="flex items-center gap-2 font-semibold">🌙 수면 벌금 부과</h2>
-      <StudentSelect students={students} />
-
-      <div>
-        <label>날짜</label>
-        <input type="date" name="occurredDate" defaultValue={today()} className="mt-1.5" />
-      </div>
-
-      <div>
-        <label>잠든 교시 (복수 선택 가능)</label>
-        <div className="mt-1.5 flex flex-wrap gap-2">
-          {[1, 2, 3, 4, 5, 6, 7].map((p) => (
-            <button
-              type="button"
-              key={p}
-              onClick={() => toggle(p)}
-              className={`size-11 rounded-xl text-sm font-medium ${
-                periods.includes(p) ? "bg-blue-900/60 text-blue-300 ring-1 ring-blue-500" : "bg-surface-2"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        {periods.map((p) => (
-          <input key={p} type="hidden" name="periods" value={p} />
-        ))}
-      </div>
-
-      <div>
-        <label>잠든 횟수</label>
-        <input type="number" name="sleepCount" min={1} defaultValue={1} className="mt-1.5 w-28" />
-      </div>
-
-      <div>
-        <label>증거 사진 (필수)</label>
-        <input type="file" name="photo" accept="image/*" capture="environment" required className="mt-1.5" />
-      </div>
-
-      <div className="rounded-xl bg-surface-2 p-3">
-        <p className="text-xs text-neutral-500">벌금액 (교시당 자동 계산)</p>
-        <p className="mt-0.5 text-xl font-semibold">
-          {won(amount)}{" "}
-          <span className="text-xs font-normal text-neutral-500">
-            {periods.length}교시 × {won(sleepUnit)}
-          </span>
-        </p>
-      </div>
-
-      <button
-        disabled={pending || periods.length === 0}
-        className="w-full rounded-xl bg-white py-3 font-medium text-neutral-900 disabled:opacity-50"
-      >
-        {pending ? "부과 중…" : "벌금 부과하기"}
-      </button>
-    </form>
-  );
-}
-
-function LateForm({
-  students,
-  lateAmount,
-}: {
-  students: { id: string; name: string; student_number: number | null }[];
-  lateAmount: number;
-}) {
+function LateForm({ students, lateAmount }: { students: Opt[]; lateAmount: number }) {
   const [pending, setPending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const toast = useToast();
@@ -190,15 +82,15 @@ function LateForm({
       }}
       className="space-y-4 rounded-2xl bg-surface p-5"
     >
-      <h2 className="flex items-center gap-2 font-semibold">⏰ 지각 벌금 부과</h2>
+      <h2 className="font-semibold">⏰ 지각 벌금 부과</h2>
       <StudentSelect students={students} />
       <div>
-        <label>날짜</label>
-        <input type="date" name="occurredDate" defaultValue={today()} className="mt-1.5" />
+        <label htmlFor="lateDate">날짜</label>
+        <input id="lateDate" type="date" name="occurredDate" defaultValue={today()} className="mt-1.5" />
       </div>
       <div>
-        <label>메모 (선택)</label>
-        <input name="reason" placeholder="예: 3교시 지각" className="mt-1.5" />
+        <label htmlFor="lateReason">메모 (선택)</label>
+        <input id="lateReason" name="reason" placeholder="예: 조회 10분 초과" className="mt-1.5" />
       </div>
       <div className="rounded-xl bg-surface-2 p-3">
         <p className="text-xs text-neutral-500">벌금액</p>
@@ -206,7 +98,54 @@ function LateForm({
       </div>
       <button
         disabled={pending}
-        className="w-full rounded-xl bg-white py-3 font-medium text-neutral-900 disabled:opacity-50"
+        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+      >
+        {pending ? "부과 중…" : "벌금 부과하기"}
+      </button>
+    </form>
+  );
+}
+
+function OtherForm({ students }: { students: Opt[] }) {
+  const [pending, setPending] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const toast = useToast();
+  const router = useRouter();
+  return (
+    <form
+      ref={formRef}
+      action={async (fd) => {
+        setPending(true);
+        try {
+          await createOtherFine(fd);
+          formRef.current?.reset();
+          toast("벌금을 부과했어요.");
+          router.push("/admin");
+        } catch (e) {
+          toast((e as Error).message, "error");
+        } finally {
+          setPending(false);
+        }
+      }}
+      className="space-y-4 rounded-2xl bg-surface p-5"
+    >
+      <h2 className="font-semibold">✏️ 기타 벌금 부과</h2>
+      <StudentSelect students={students} />
+      <div>
+        <label htmlFor="otherDate">날짜</label>
+        <input id="otherDate" type="date" name="occurredDate" defaultValue={today()} className="mt-1.5" />
+      </div>
+      <div>
+        <label htmlFor="otherReason">사유 (필수)</label>
+        <input id="otherReason" name="reason" required placeholder="예: 급식실 새치기" className="mt-1.5" />
+      </div>
+      <div>
+        <label htmlFor="otherAmount">금액</label>
+        <input id="otherAmount" name="amount" type="number" min={100} step={100} defaultValue={1000} required className="mt-1.5" />
+      </div>
+      <button
+        disabled={pending}
+        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
       >
         {pending ? "부과 중…" : "벌금 부과하기"}
       </button>
