@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { addStudent, setRole } from "@/app/admin/actions";
 import { useToast } from "@/components/Toast";
 import type { Student } from "@/lib/types";
+import Link from "next/link";
 
 export function StudentManager({ students }: { students: Student[] }) {
   const [pending, start] = useTransition();
@@ -57,7 +58,7 @@ export function StudentManager({ students }: { students: Student[] }) {
             key={s.id}
             className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 last:border-0"
           >
-            <div className="min-w-0">
+            <Link href={`/admin/students/${s.id}`} className="min-w-0 flex-1">
               <p className="text-sm">
                 {s.student_number ? (
                   <span className="mr-2 text-neutral-500">{s.student_number}</span>
@@ -66,9 +67,10 @@ export function StudentManager({ students }: { students: Student[] }) {
                 {!s.auth_user_id && (
                   <span className="ml-2 text-xs text-neutral-600">미로그인</span>
                 )}
+                <span className="ml-2 text-xs text-neutral-600">›</span>
               </p>
               <p className="truncate text-xs text-neutral-500">{s.google_email}</p>
-            </div>
+            </Link>
             <button
               disabled={pending}
               onClick={() =>

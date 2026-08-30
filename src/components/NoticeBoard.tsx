@@ -25,11 +25,11 @@ export async function NoticeBoard() {
   if (notices.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-blue-900/50 bg-blue-950/25 p-5">
-      <h2 className="text-sm font-medium text-blue-200">📢 공지</h2>
+    <section className="rounded-2xl border border-accent/40 bg-accent/5 p-5">
+      <h2 className="text-sm font-semibold text-accent">📢 공지</h2>
       <ul className="mt-3 space-y-3">
         {notices.map((n) => (
-          <li key={n.id} className="border-l-2 border-blue-800/70 pl-3">
+          <li key={n.id} className="border-l-2 border-accent/60 pl-3">
             <div className="flex items-baseline justify-between gap-2">
               <p className="text-sm font-medium text-neutral-100">{n.title}</p>
               <span className="shrink-0 text-xs text-neutral-600">{ko(n.created_at)}</span>

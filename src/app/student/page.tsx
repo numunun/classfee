@@ -6,6 +6,9 @@ import { StudentPayment } from "@/components/StudentPayment";
 import { MealCard } from "@/components/MealCard";
 import { PenaltyStatus } from "@/components/PenaltyStatus";
 import { NoticeBoard } from "@/components/NoticeBoard";
+import { ThemeBanner } from "@/components/ThemeBanner";
+import { getTheme, themeCss } from "@/lib/themes";
+import { ThemeBackdrop } from "@/components/ThemeBackdrop";
 import { NightStudyReport, type SessionState } from "@/components/NightStudyReport";
 import { FINE_TYPE_LABEL, payable, won, type Fine } from "@/lib/types";
 import { getSettings } from "@/lib/settings";
@@ -113,14 +116,33 @@ export default async function StudentPage() {
   const owingTotal = owing.reduce((a, f) => a + payable(f), 0);
   const cumulativeTotal = live.reduce((a, f) => a + payable(f), 0);
 
+  // 개인 커스텀 테마 (없으면 null → 기본 화면)
+  const theme = getTheme(me.student_number);
+
   const selectable = live.filter((f) => f.status === "unpaid" || f.status === "doubled");
   const nextDue = selectable.map((f) => f.due_date).sort().at(0);
 
   return (
-    <PageShell>
-      <TopBar title="내 학급" who={me.name} isAdmin={me.role === "admin"} here="student" />
+    <>
+      {/* 배경은 PageShell 바깥에 둔다. 안에 두면 카드(position:static)보다 위에 그려져
+          워터마크가 본문을 가린다. */}
+      {theme && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
+          <ThemeBackdrop theme={theme} />
+        </>
+      )}
 
-      <div className="mt-4">
+      <PageShell>
+        <TopBar title="내 학급" who={me.name} isAdmin={me.role === "admin"} here="student" />
+
+        {theme && (
+          <div className="mt-4">
+            <ThemeBanner theme={theme} name={me.name} studentNumber={me.student_number} />
+          </div>
+        )}
+
+      <div className="mt-3">
         <NoticeBoard />
       </div>
 
@@ -239,6 +261,7 @@ export default async function StudentPage() {
           )}
         </ul>
       </section>
-    </PageShell>
+      </PageShell>
+    </>
   );
 }

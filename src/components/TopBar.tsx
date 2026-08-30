@@ -17,14 +17,14 @@ export function TopBar({
   return (
     <header className="flex items-center justify-between gap-3 py-1">
       <div className="flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-xl bg-blue-600/90 text-lg">🏫</span>
+        <span className="grid size-9 place-items-center rounded-xl bg-accent text-lg">🏫</span>
         <h1 className="text-lg font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
         {isAdmin && here === "student" && (
           <Link
             href="/admin"
-            className="rounded-lg bg-blue-900/60 px-2.5 py-1.5 text-xs font-medium text-blue-200 hover:bg-blue-900"
+            className="rounded-lg border border-accent/50 bg-accent/15 px-2.5 py-1.5 text-xs font-semibold text-accent"
           >
             관리
           </Link>

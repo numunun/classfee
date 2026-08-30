@@ -54,6 +54,7 @@ export interface Fine {
   status: FineStatus;
   created_at: string;
   deleted_at: string | null;
+  delete_reason?: string | null;
 }
 
 // 실제 청구액 (기한 초과 2배)
