@@ -43,7 +43,7 @@ export async function createLateFine(formData: FormData) {
     created_by: me.id,
   });
   if (error) throw new Error(error.message);
-  revalidatePath("/admin");
+  revalidatePath("/", "layout");
 }
 
 // ---------- 기타 벌금 (금액을 직접 입력) ----------
@@ -72,7 +72,7 @@ export async function createOtherFine(formData: FormData) {
     created_by: me.id,
   });
   if (error) throw new Error(error.message);
-  revalidatePath("/admin");
+  revalidatePath("/", "layout");
 }
 
 // ---------- 청소 출결 저장 (불참 -> 트리거가 자동 벌금) ----------
@@ -98,7 +98,7 @@ export async function saveCleaning(formData: FormData) {
     .from("cleaning_records")
     .upsert(rows, { onConflict: "student_id,cleaning_date,area" });
   if (error) throw new Error(error.message);
-  revalidatePath("/admin");
+  revalidatePath("/", "layout");
 }
 
 // ---------- 벌금 소프트 삭제 ----------
