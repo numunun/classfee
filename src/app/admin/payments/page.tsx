@@ -26,7 +26,7 @@ export default async function PaymentsPage() {
   const { data } = await supabase
     .from("payment_requests")
     .select(
-      "id, total_amount, depositor_name, receipt_photo_url, students(name), payment_request_items(fines(type, amount, status, reason, created_at))"
+      "id, total_amount, depositor_name, receipt_photo_url, students!payment_requests_student_id_fkey(name), payment_request_items(fines(type, amount, status, reason, created_at))"
     )
     .eq("status", "pending")
     .order("requested_at", { ascending: true });

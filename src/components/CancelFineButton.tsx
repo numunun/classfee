@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { softDeleteFine } from "@/app/admin/actions";
 import { useToast } from "@/components/Toast";
+import { Modal } from "@/components/Modal";
 
 export function CancelFineButton({ fineId }: { fineId: string }) {
   const [open, setOpen] = useState(false);
@@ -21,17 +22,13 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
       </button>
 
       {open && (
-        // 모달은 테마의 반투명·색반전 규칙을 타면 안 되므로 색을 인라인으로 고정한다.
-        <div
-          className="fixed inset-0 z-50 grid place-items-center p-6"
-          style={{ background: "rgba(0,0,0,0.55)" }}
-        >
+        <Modal onClose={() => setOpen(false)}>
           <div
-            className="w-full max-w-sm rounded-2xl p-5"
+            className="mx-auto w-full max-w-sm rounded-2xl p-5"
             style={{
               background: "rgb(var(--c-surface))",
               border: "1px solid rgb(var(--c-line))",
-              boxShadow: "0 20px 60px rgba(0,0,0,.45)",
+              boxShadow: "0 24px 70px rgba(0,0,0,.45)",
             }}
           >
             <h3 className="font-semibold">벌금 취소</h3>
@@ -54,6 +51,7 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
               </button>
               <button
                 disabled={pending || !reason.trim()}
+                title={!reason.trim() ? "취소 사유를 입력하세요" : undefined}
                 onClick={() =>
                   start(async () => {
                     try {
@@ -72,7 +70,7 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

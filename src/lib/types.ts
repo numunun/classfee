@@ -54,11 +54,13 @@ export interface Fine {
   created_at: string;
   deleted_at: string | null;
   delete_reason?: string | null;
+  overdue_multiplier?: number;
 }
 
-// 실제 청구액 (기한 초과 2배)
-export function payable(f: Pick<Fine, "amount" | "status">): number {
-  return f.status === "doubled" ? f.amount * 2 : f.amount;
+/** 실제로 내야 할 금액. 연체 배수를 반영한다. (규정 ⑧⑨: 7일마다 2배, 최대 4배) */
+export function payable(f: Pick<Fine, "amount" | "status" | "overdue_multiplier">): number {
+  const m = f.overdue_multiplier ?? (f.status === "doubled" ? 2 : 1);
+  return f.amount * m;
 }
 
 export function won(n: number): string {

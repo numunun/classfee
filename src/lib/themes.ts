@@ -212,13 +212,24 @@ const GLASS = `
 }
 /* 버튼은 눌리는 요소이므로 경계를 조금 더 또렷하게 */
 button.bg-surface-2,a.bg-surface-2{
-  box-shadow:0 0 0 1px rgb(var(--c-line)), 0 2px 6px rgba(0,0,0,.05);
+  box-shadow:0 0 0 1px rgb(var(--c-line)), 0 8px 26px rgba(0,0,0,.10);
 }
 `;
 
-/** :root 에 넣을 CSS 문자열. 테마가 없으면 빈 문자열 */
+/** 테마가 없을 때 되돌릴 기본값. globals.css 의 :root 와 같아야 한다. */
+const DEFAULT_ROOT =
+  ":root{color-scheme:dark;" +
+  "--c-ink:14 14 16;--c-surface:22 22 24;--c-surface-2:31 31 35;" +
+  "--c-line:42 42 46;--c-accent:59 130 246;}";
+
+/**
+ * :root 에 넣을 CSS 문자열.
+ * 테마가 없으면 빈 문자열이 아니라 "기본값"을 돌려준다.
+ * 빈 문자열을 주면 앞 화면(관리자 본인 테마)의 값이 남아 미리보기가 오염된다.
+ */
 export function themeCss(theme: Theme | null): string {
-  if (!theme) return "";
+  if (!theme) return DEFAULT_ROOT;
+
   const vars = [`--c-accent:${rgbTriplet(theme.accent)};`];
   if (theme.palette) {
     vars.push(

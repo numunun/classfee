@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
+import { Modal } from "@/components/Modal";
 import { FINE_TYPE_LABEL, payable, won, type Fine } from "@/lib/types";
 
 export function StudentPayment({
@@ -20,6 +21,7 @@ export function StudentPayment({
   const [depositor, setDepositor] = useState(myName);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const total = useMemo(
     () => fines.filter((f) => picked.has(f.id)).reduce((a, f) => a + payable(f), 0),
@@ -29,7 +31,8 @@ export function StudentPayment({
   function toggle(id: string) {
     setPicked((cur) => {
       const n = new Set(cur);
-      n.has(id) ? n.delete(id) : n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
   }
@@ -58,7 +61,7 @@ export function StudentPayment({
       });
       if (error) throw new Error(error.message);
 
-      toast("입금 완료 신청을 보냈어요. 반장이 통장 확인 후 승인합니다.");
+      toast("입금 완료 신청을 보냈어요. 관리자가 통장 확인 후 승인해요.");
       setOpen(false);
       router.refresh();
     } catch (e) {
@@ -74,72 +77,140 @@ export function StudentPayment({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 font-medium text-neutral-900"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-semibold"
+        style={{ background: "rgb(var(--c-accent))", color: "#fff" }}
       >
-        ✓ 입금 완료 신청
+        입금 완료 신청하기
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-end bg-black/60 sm:place-items-center">
-          <div className="max-h-[88vh] w-full overflow-y-auto rounded-t-2xl bg-surface p-5 sm:max-w-md sm:rounded-2xl">
-            <h3 className="font-semibold">입금 완료 신청</h3>
-            <p className="mt-1 text-xs text-neutral-500">
-              납부한 항목을 골라 한 번에 신청하세요. 입금자명은 반드시 본인 실명으로.
-            </p>
-
-            <ul className="mt-4 space-y-2">
-              {fines.map((f) => (
-                <li key={f.id}>
-                  <label className="flex items-center gap-3 rounded-xl bg-surface-2 p-3">
-                    <input
-                      type="checkbox"
-                      checked={picked.has(f.id)}
-                      onChange={() => toggle(f.id)}
-                      className="!w-auto"
-                    />
-                    <span className="flex-1 text-sm">
-                      {FINE_TYPE_LABEL[f.type]}
-                      {f.reason ? <span className="text-neutral-500"> · {f.reason}</span> : null}
-                    </span>
-                    <span className="text-sm font-medium">{won(payable(f))}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-3 flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2.5">
-              <span className="text-sm text-neutral-400">합계</span>
-              <span className="text-lg font-semibold">{won(total)}</span>
+        <Modal onClose={() => setOpen(false)} align="bottom">
+          <div
+            className="mx-auto flex max-h-[88vh] w-full flex-col overflow-hidden rounded-3xl sm:max-w-md"
+            style={{
+              background: "rgb(var(--c-surface))",
+              border: "1px solid rgb(var(--c-line))",
+              boxShadow: "0 24px 70px rgba(0,0,0,.5)",
+            }}
+          >
+            {/* 헤더 */}
+            <div
+              className="shrink-0 px-5 pb-4 pt-5"
+              style={{ borderBottom: "1px solid rgb(var(--c-line))" }}
+            >
+              <h3 className="text-lg font-bold">입금 완료 신청</h3>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+                계좌로 먼저 입금한 뒤, 납부한 항목을 골라 신청하세요. 관리자가 통장 내역을 확인하고
+                승인해요.
+              </p>
             </div>
 
-            <div className="mt-4">
-              <label>입금자명 (본인 실명)</label>
-              <input value={depositor} onChange={(e) => setDepositor(e.target.value)} className="mt-1.5" />
-            </div>
-            <div className="mt-3">
-              <label>입금 완료 화면 사진</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="mt-1.5"
-              />
-            </div>
+            {/* 본문 (스크롤) */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+              <p className="mb-2 text-xs font-medium text-neutral-400">납부한 항목</p>
+              <ul className="space-y-2">
+                {fines.map((f) => {
+                  const on = picked.has(f.id);
+                  return (
+                    <li key={f.id}>
+                      <label
+                        className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition"
+                        style={{
+                          background: on ? "rgb(var(--c-accent) / 0.12)" : "rgb(var(--c-surface-2))",
+                          border: `1px solid ${on ? "rgb(var(--c-accent) / 0.55)" : "rgb(var(--c-line))"}`,
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => toggle(f.id)}
+                          className="size-4 !w-auto shrink-0"
+                        />
+                        <span className="min-w-0 flex-1 text-sm">
+                          <span className="font-medium">{FINE_TYPE_LABEL[f.type]}</span>
+                          {f.reason ? (
+                            <span className="block truncate text-xs text-neutral-500">{f.reason}</span>
+                          ) : null}
+                        </span>
+                        <span className="shrink-0 text-sm font-semibold">{won(payable(f))}</span>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
 
-            <div className="mt-5 flex gap-2">
-              <button onClick={() => setOpen(false)} className="flex-1 rounded-xl bg-surface-2 py-3 text-sm text-neutral-300">
-                취소
-              </button>
-              <button
-                onClick={submit}
-                disabled={busy}
-                className="flex-1 rounded-xl bg-white py-3 text-sm font-medium text-neutral-900 disabled:opacity-50"
+              <div
+                className="mt-3 flex items-center justify-between rounded-xl px-4 py-3"
+                style={{
+                  background: "rgb(var(--c-surface-2))",
+                  border: "1px solid rgb(var(--c-line))",
+                }}
               >
-                {busy ? "보내는 중…" : "신청하기"}
-              </button>
+                <span className="text-sm text-neutral-400">합계 {picked.size}건</span>
+                <span className="text-xl font-extrabold">{won(total)}</span>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="depositor">입금자명 (본인 실명)</label>
+                <input
+                  id="depositor"
+                  value={depositor}
+                  onChange={(e) => setDepositor(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+
+              <div className="mt-3">
+                <label>입금 완료 화면 사진</label>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="mt-1.5 flex h-[2.875rem] w-full items-center gap-3 rounded-xl px-3.5 text-left text-sm"
+                  style={{
+                    background: "rgb(var(--c-surface-2))",
+                    border: `1px dashed ${file ? "rgb(var(--c-accent) / 0.7)" : "rgb(var(--c-line))"}`,
+                  }}
+                >
+                  <span className="shrink-0">{file ? "🖼" : "＋"}</span>
+                  <span className={`truncate ${file ? "" : "text-neutral-500"}`}>
+                    {file ? file.name : "사진 선택하기"}
+                  </span>
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
+            {/* 하단 버튼 */}
+            <div
+              className="shrink-0 px-5 pb-5 pt-4"
+              style={{ borderTop: "1px solid rgb(var(--c-line))" }}
+            >
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="h-12 flex-1 rounded-xl text-sm text-neutral-400"
+                  style={{ background: "rgb(var(--c-surface-2))" }}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={submit}
+                  disabled={busy}
+                  className="h-12 flex-[2] rounded-xl text-sm font-bold disabled:opacity-50"
+                  style={{ background: "rgb(var(--c-accent))", color: "#fff" }}
+                >
+                  {busy ? "보내는 중…" : `${won(total)} 신청하기`}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

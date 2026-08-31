@@ -9,6 +9,7 @@ import { ThemeBanner } from "@/components/ThemeBanner";
 import { getTheme, themeCss } from "@/lib/themes";
 import { ThemeBackdrop } from "@/components/ThemeBackdrop";
 import { NightStudyReport, type SessionState } from "@/components/NightStudyReport";
+import { UnpaidAlert } from "@/components/UnpaidAlert";
 import { FINE_TYPE_LABEL, payable, won, type Fine, type Student } from "@/lib/types";
 import { getSettings } from "@/lib/settings";
 import {
@@ -132,14 +133,10 @@ export async function StudentView({
 
   return (
     <>
-      {/* 배경은 PageShell 바깥에 둔다. 안에 두면 카드(position:static)보다 위에 그려져
-          워터마크가 본문을 가린다. */}
-      {theme && (
-        <>
-          <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
-          <ThemeBackdrop theme={theme} />
-        </>
-      )}
+      {/* 테마가 없어도 기본값을 실어 보낸다. 그래야 관리자 미리보기에서
+          이전 화면(관리자 본인 테마)의 색이 남지 않는다. */}
+      <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
+      {theme && <ThemeBackdrop theme={theme} />}
 
       <PageShell>
         {readOnly ? (
@@ -167,6 +164,15 @@ export async function StudentView({
 
       <div className="mt-3">
         <NoticeBoard />
+      </div>
+
+      <div className="mt-3">
+        <UnpaidAlert
+          count={owing.length}
+          total={owingTotal}
+          nextDue={nextDue}
+          doubleEnabled={s.double_fine_enabled}
+        />
       </div>
 
       <div className="mt-3">
@@ -222,7 +228,7 @@ export async function StudentView({
           <p className="mt-1 text-3xl font-bold text-red-400">{won(owingTotal)}</p>
           {nextDue && s.double_fine_enabled && (
             <p className="mt-2 text-sm text-neutral-400">
-              🕐 {ko(nextDue)}까지 미납 시 2배로 인상
+              🕐 {ko(nextDue)}까지 안 내면 2배가 돼요
             </p>
           )}
         </section>
@@ -288,7 +294,11 @@ export async function StudentView({
                     <span className="text-amber-400">입금 확인 대기 중</span>
                   )}
                   {(f.status === "unpaid" || f.status === "doubled") && (
-                    <span className="text-red-400">{ko(f.due_date)}까지 미납</span>
+                    <span className="text-red-400">
+                      {(f.overdue_multiplier ?? 1) > 1
+                        ? `기한 초과 · ${f.overdue_multiplier}배 적용 중`
+                        : `${ko(f.due_date)}까지 납부`}
+                    </span>
                   )}
                 </p>
               </li>

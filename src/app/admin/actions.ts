@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentStudent } from "@/lib/auth";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { todayISO } from "@/lib/night-study";
 
 async function assertAdmin() {
   const me = await getCurrentStudent();
@@ -14,6 +15,17 @@ async function getSettings() {
   const supabase = createClient();
   const { data } = await supabase.from("settings").select("*").eq("id", 1).single();
   return data!;
+}
+
+/**
+ * 폼에서 온 날짜를 안전하게 읽는다.
+ * String(formData.get(...)) 는 값이 없을 때 문자열 "null" 을 만들어
+ * DB 에 그대로 넘어가면 date 파싱 에러가 난다.
+ */
+function readDate(formData: FormData, key: string): string {
+  const raw = formData.get(key);
+  if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  return todayISO();
 }
 
 /** 날짜 문자열에 일수를 더한다. 값이 없거나 잘못됐으면 오늘(한국 기준)을 쓴다. */
@@ -42,7 +54,7 @@ export async function createLateFine(formData: FormData) {
   const s = await getSettings();
 
   const studentId = String(formData.get("studentId"));
-  const occurred = String(formData.get("occurredDate"));
+  const occurred = readDate(formData, "occurredDate");
   const reason = String(formData.get("reason") || "");
   if (!studentId) throw new Error("학생을 선택하세요");
 
@@ -66,7 +78,7 @@ export async function createOtherFine(formData: FormData) {
   const s = await getSettings();
 
   const studentId = String(formData.get("studentId"));
-  const occurred = String(formData.get("occuredDate"));
+  const occurred = readDate(formData, "occurredDate");
   const reason = String(formData.get("reason") || "").trim();
   const amount = Number(formData.get("amount") || 0);
 
