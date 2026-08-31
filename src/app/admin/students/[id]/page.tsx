@@ -133,10 +133,17 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           </span>
         )}
       </div>
-      <p className="mb-4 text-xs text-neutral-500">
+      <p className="mb-3 text-xs text-neutral-500">
         {student.google_email}
-        {!student.auth_user_id && " · 아직 로그인하지 않음"} · 읽기 전용 화면이에요.
+        {!student.auth_user_id && " · 아직 로그인하지 않음"}
       </p>
+
+      <Link
+        href={`/preview/${student.id}`}
+        className="mb-4 inline-block rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
+      >
+        이 학생 화면으로 보기 (테마 포함) →
+      </Link>
 
       <div className="space-y-3">
         <PenaltyStatus total={cumulative} />

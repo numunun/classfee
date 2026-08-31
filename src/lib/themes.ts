@@ -61,6 +61,46 @@ export const THEMES: Record<number, Theme> = {
       line: "#E3C4AC",
     },
   },
+    // 20911 — Gen.G
+  20911: {
+    team: "Gen.G Esports",
+    tagline: "GEN.G",
+    accent: "#CFB887",
+    deep: "#0B0B0D",
+    emoji: "🏆",
+    motto: "GEN.G Valorant · SEOUL · 2020 · TIGERNATION",
+    logo: "/theme/gen.svg",
+    ramp: ["#3D3320", "#8A7846", "#CFB887", "#F0E4C8", "#FFFFFF", "#CFB887", "#5C4E2E"],
+    mode: "dark",
+    watermarkSize: "min(78vw, 560px)",
+    watermarkShift: "-1vh",
+    palette: {
+      ink: "#0A0A0B",
+      surface: "#161614",
+      surface2: "#201F1B",
+      line: "#332F26",
+    },
+  },
+    // 20926 — T1
+  20926: {
+    team: "T1",
+    tagline: "T1",
+    accent: "#E2012D",
+    deep: "#0A0A0C",
+    emoji: "🔴",
+    motto: "T1 · SEOUL · 2004 · UNKILLABLE DEMON KING",
+    logo: "/theme/t1.png",
+    ramp: ["#3A0009", "#9E0020", "#E2012D", "#FF3E60", "#FFD5DD", "#E2012D", "#7A0018"],
+    mode: "dark",
+    watermarkSize: "min(82vw, 600px)",
+    watermarkShift: "-1vh",
+    palette: {
+      ink: "#08080A",
+      surface: "#141417",
+      surface2: "#1D1D21",
+      line: "#2E2E34",
+    },
+  },
 };
 
 export function getTheme(studentNumber: number | null | undefined): Theme | null {

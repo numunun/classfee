@@ -33,13 +33,16 @@ export function ThemeBanner({
         }}
       >
         {theme.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={theme.logo}
-            alt=""
-            className="size-14 shrink-0 rounded-xl object-contain"
-            style={{ background: "#fff", padding: 4 }}
-          />
+          // 흰 배경 jpg(한화)는 정사각 타일 위에 올리고,
+          // 투명 로고(T1·젠지)는 타일 없이 그대로 둔다.
+          // 로고 비율이 제각각이므로 높이를 기준으로 맞춰야 크기가 일관된다.
+          <div
+            className="grid size-14 shrink-0 place-items-center rounded-xl"
+            style={light ? { background: "#fff" } : undefined}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={theme.logo} alt="" className="h-10 w-11 object-contain" />
+          </div>
         ) : (
           <span className="text-4xl leading-none">{theme.emoji}</span>
         )}
