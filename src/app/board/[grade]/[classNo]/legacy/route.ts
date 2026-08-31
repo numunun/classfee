@@ -139,7 +139,7 @@ export async function GET(
     ".cell{border-radius:1.4vh;border:1px solid;padding:1vh 0.6vh;text-align:center;" +
     "display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;" +
     "-webkit-box-pack:center;justify-content:center;overflow:hidden;" +
-    "box-shadow:0 0.3vh 1.2vh rgba(0,0,0,0.35);animation:pop .35s ease both;}" +
+    "box-shadow:0 0.3vh 1.2vh rgba(0,0,0,0.35);}" +
     ".no{font-size:1.25vh;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.06em;}" +
     ".nm{margin-top:0.4vh;font-size:2.6vh;font-weight:800;color:#fff;letter-spacing:-0.02em;" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
@@ -151,8 +151,8 @@ export async function GET(
     "display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;" +
     "-webkit-box-align:center;align-items:center;}" +
     ".empty .no{color:rgba(255,255,255,0.14);}" +
+    "html{background:#07070a;}" +
 
-    "@keyframes pop{from{opacity:0;transform:translateY(0.8vh);}to{opacity:1;transform:none;}}" +
     "</style></head><body><div class=\"wrap\">";
 
   if (error) {
@@ -218,7 +218,7 @@ export async function GET(
     const c = COLOR[r.status] || COLOR.other;
     cells +=
       '<div class="cell" style="background:' + c[0] + ";border-color:" + c[2] +
-      ";animation-delay:" + (n * 12) + 'ms">' +
+      '">' +
       '<div class="no">' + n + "번</div>" +
       '<div class="nm">' + esc(r.name) + "</div>" +
       '<div><span class="st" style="background:' + c[3] + ";color:" + c[1] + '">' +
