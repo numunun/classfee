@@ -15,7 +15,7 @@ export default async function AdminDashboard() {
 
   const { data: finesData } = await supabase
     .from("fines")
-    .select("*, students(name)")
+    .select("*, students!fines_student_id_fkey(name)")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   const fines = (finesData ?? []) as Row[];

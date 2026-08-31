@@ -27,13 +27,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
         {toasts.map((t) => (
+          // 색은 전부 인라인으로 고정한다. 유틸리티 클래스를 쓰면
+          // 밝은 테마의 색 반전 규칙에 걸려 검은 배경에 검은 글자가 된다.
           <div
             key={t.id}
-            className={`animate-[slidein_0.2s_ease-out] rounded-xl px-4 py-3 text-sm shadow-lg ${
-              t.kind === "error"
-                ? "bg-red-600 text-white"
-                : "bg-neutral-800 text-neutral-100 ring-1 ring-line"
-            }`}
+            className="animate-[slidein_0.2s_ease-out] rounded-xl px-4 py-3 text-sm"
+            style={{
+              background: t.kind === "error" ? "#DC2626" : "#1B1B1F",
+              color: "#FFFFFF",
+              boxShadow: "0 8px 24px rgba(0,0,0,.35)",
+            }}
           >
             {t.message}
           </div>

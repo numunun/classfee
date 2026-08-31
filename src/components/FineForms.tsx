@@ -6,7 +6,14 @@ import { createLateFine, createOtherFine } from "@/app/admin/actions";
 import { useToast } from "@/components/Toast";
 import { won, type Student } from "@/lib/types";
 
-const today = () => new Date().toISOString().slice(0, 10);
+// UTC 기준 toISOString() 을 쓰면 한국 자정~오전 9시 사이에 하루가 밀린다.
+const today = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
 type Opt = Pick<Student, "id" | "name" | "student_number">;
 

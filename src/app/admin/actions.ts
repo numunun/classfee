@@ -16,10 +16,23 @@ async function getSettings() {
   return data!;
 }
 
+/** 날짜 문자열에 일수를 더한다. 값이 없거나 잘못됐으면 오늘(한국 기준)을 쓴다. */
 function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+  const base = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+    ? new Date(dateStr + "T00:00:00+09:00")
+    : new Date();
+
+  if (Number.isNaN(base.getTime())) {
+    throw new Error("날짜가 올바르지 않습니다.");
+  }
+
+  base.setDate(base.getDate() + days);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(base);
 }
 
 // ---------- 지각 벌금 ----------

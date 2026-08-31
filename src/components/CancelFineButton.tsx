@@ -21,8 +21,19 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6">
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-5">
+        // 모달은 테마의 반투명·색반전 규칙을 타면 안 되므로 색을 인라인으로 고정한다.
+        <div
+          className="fixed inset-0 z-50 grid place-items-center p-6"
+          style={{ background: "rgba(0,0,0,0.55)" }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5"
+            style={{
+              background: "rgb(var(--c-surface))",
+              border: "1px solid rgb(var(--c-line))",
+              boxShadow: "0 20px 60px rgba(0,0,0,.45)",
+            }}
+          >
             <h3 className="font-semibold">벌금 취소</h3>
             <p className="mt-1 text-sm text-neutral-400">
               기록은 남고 「취소됨」으로 표시돼요. 학생 화면에도 취소 사실이 보여요.
@@ -54,7 +65,8 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
                     }
                   })
                 }
-                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-medium disabled:opacity-50"
+                className="rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-50"
+                style={{ background: "#DC2626", color: "#FFFFFF" }}
               >
                 취소 처리
               </button>
