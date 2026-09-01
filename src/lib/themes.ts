@@ -89,7 +89,7 @@ export const THEMES: Record<number, Theme> = {
     deep: "#0A0A0C",
     emoji: "🔴",
     motto: "T1 · SEOUL · 2004 · A flower blooming against all odds.",
-    logo: "/theme/t1.png",
+    logo: "/theme/T1.png",
     ramp: ["#3A0009", "#9E0020", "#E2012D", "#FF3E60", "#FFD5DD", "#E2012D", "#7A0018"],
     mode: "dark",
     watermarkSize: "min(82vw, 600px)",
