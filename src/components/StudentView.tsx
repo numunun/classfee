@@ -20,6 +20,7 @@ import {
   NS_LABEL,
   NS_STYLE,
   isCipDay,
+  isReportOpen,
   type NightStatus,
   type Session,
 } from "@/lib/night-study";
@@ -194,9 +195,9 @@ export async function StudentView({
       ))}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-start">
-        {isCipDay(wd) && !readOnly ? (
+        {isCipDay(wd) && !readOnly && isReportOpen() ? (
           <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />
-        ) : readOnly ? (
+        ) : readOnly || (isCipDay(wd) && !isReportOpen()) ? (
           <section className="rounded-2xl bg-surface p-5">
             <h2 className="font-medium">🌙 오늘 CIP</h2>
             <ul className="mt-2 space-y-1.5">
@@ -210,6 +211,11 @@ export async function StudentView({
                 </li>
               ))}
             </ul>
+            {!readOnly && (
+              <p className="mt-3 text-xs text-neutral-500">
+                오늘 신고는 마감됐어요. (21시까지) 수정이 필요하면 관리자에게 말해주세요.
+              </p>
+            )}
           </section>
         ) : (
           <section className="rounded-2xl bg-surface p-5">

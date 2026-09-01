@@ -71,6 +71,14 @@ export function isCipDay(weekday: number | null): boolean {
   return weekday !== null && weekday >= 1 && weekday <= 4;
 }
 
+/** CIP 신고 마감 시각 (3차 종료). 이 시각 이후에는 학생이 못 고친다. */
+export const REPORT_CUTOFF = SESSION_TIME[3].end;
+
+/** 지금 학생이 CIP 신고를 할 수 있는지 (한국 시각 기준) */
+export function isReportOpen(): boolean {
+  return seoulMinutesOfDay() < REPORT_CUTOFF;
+}
+
 /** 지금이 몇 차 시간인지. 어느 구간에도 없으면 null */
 export function liveSessionAt(minutesOfDay: number): Session | null {
   for (const n of SESSIONS) {
