@@ -44,6 +44,8 @@ export default async function PaymentsPage() {
     }
   }
 
+
+
   return (
     <>
       <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>

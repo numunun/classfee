@@ -143,21 +143,46 @@ export async function decidePayment(
   requestId: string,
   decision: "approved" | "rejected",
   rejectReason?: string
-) {
+): Promise<ActionResult> {
   const me = await assertAdmin();
   const supabase = createClient();
-  const { error } = await supabase
+
+  // 본인 신청은 다른 관리자가 처리해야 한다 (RLS 로도 막혀 있음).
+  // RLS 는 막힐 때 에러 대신 "0행 수정"으로 조용히 끝나므로 여기서 먼저 걸러 안내한다.
+  const { data: target } = await supabase
+    .from("payment_requests")
+    .select("student_id, status")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (!target) return { ok: false, message: "신청을 찾을 수 없어요." };
+  if (target.status !== "pending") return { ok: false, message: "이미 처리된 신청이에요." };
+  if (target.student_id === me.id) {
+    return { ok: false, message: "본인 신청은 다른 관리자가 처리해야 해요." };
+  }
+  if (decision === "rejected" && !rejectReason?.trim()) {
+    return { ok: false, message: "거절 사유를 입력하세요." };
+  }
+
+  const { data, error } = await supabase
     .from("payment_requests")
     .update({
       status: decision,
       reviewed_by: me.id,
       reviewed_at: new Date().toISOString(),
-      reject_reason: decision === "rejected" ? rejectReason ?? null : null,
+      reject_reason: decision === "rejected" ? rejectReason?.trim() ?? null : null,
     })
-    .eq("id", requestId);
-  if (error) throw new Error(error.message);
-  revalidatePath("/admin/payments");
-  revalidatePath("/admin");
+    .eq("id", requestId)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) return { ok: false, message: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, message: "처리 권한이 없거나 이미 처리된 신청이에요." };
+  }
+
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 // ---------- 학생 추가 / 역할 변경 ----------
