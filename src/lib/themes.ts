@@ -26,6 +26,11 @@ export type Theme = {
   emoji: string;
   /** 배너 아래 띠에 들어갈 문구 */
   motto: string;
+  /**
+   * 본인 화면에서만 이름 대신 보여줄 별명.
+   * 벌금 목록·전자칠판·관리 화면 등 남에게 보이는 곳은 실명 그대로 쓴다.
+   */
+  nickname?: string;
   /** public/ 아래 로고 파일 경로. 없으면 이모지만 */
   logo?: string;
   /** 워터마크 가로 크기. 기본 min(88vw,620px) */
@@ -61,7 +66,7 @@ export const THEMES: Record<number, Theme> = {
       line: "#E3C4AC",
     },
   },
-    // 20911 — Gen.G
+  // 20911 — Gen.G
   20911: {
     team: "Gen.G Esports",
     tagline: "GEN.G",
@@ -81,7 +86,28 @@ export const THEMES: Record<number, Theme> = {
       line: "#332F26",
     },
   },
-    // 20926 — T1
+  // 20915 — 치지직
+  20915: {
+    team: "CHZZK",
+    tagline: "ON AIR",
+    accent: "#00FFA3",
+    deep: "#0B0F0D",
+    emoji: "🎙",
+    motto: "CHZZK · STREAMING · 지금 방송 중",
+    logo: "/theme/chzzk.svg",
+    nickname: "쿠 네",
+    ramp: ["#04301F", "#00A86B", "#00FFA3", "#B9FFE2", "#FFFFFF", "#00FFA3", "#036B45"],
+    mode: "dark",
+    watermarkSize: "min(78vw, 540px)",
+    watermarkShift: "-1vh",
+    palette: {
+      ink: "#080A09",
+      surface: "#121614",
+      surface2: "#1A211D",
+      line: "#26332C",
+    },
+  },
+  // 20926 — T1
   20926: {
     team: "T1",
     tagline: "T1",

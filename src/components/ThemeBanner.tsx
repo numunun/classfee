@@ -48,9 +48,10 @@ export function ThemeBanner({
         )}
 
         <div className="min-w-0 flex-1">
-          {/* 이름에 그라디언트가 흐른다 */}
-          <p className="tm-name text-2xl">{name}</p>
+          {/* 별명이 있으면 본인 화면에서만 그것을 크게 보여준다 */}
+          <p className="tm-name text-2xl">{theme.nickname ?? name}</p>
           <p className="mt-1 text-xs" style={{ color: "rgba(255,255,255,0.72)" }}>
+            {theme.nickname ? `${name} · ` : ""}
             {studentNumber ?? ""} · {theme.team}
           </p>
         </div>
