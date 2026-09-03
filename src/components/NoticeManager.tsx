@@ -9,6 +9,7 @@ import {
   deleteNotice,
 } from "@/app/admin/notices/actions";
 import { useToast } from "@/components/Toast";
+import { AutoTextarea } from "@/components/AutoTextarea";
 
 export type NoticeRow = {
   id: string;
@@ -74,7 +75,7 @@ export function NoticeManager({ rows }: { rows: NoticeRow[] }) {
         </div>
         <div>
           <label htmlFor="body">내용 (선택)</label>
-          <textarea id="body" name="body" rows={4} className="mt-1.5" />
+          <AutoTextarea id="body" name="body" minRows={4} className="mt-1.5" />
         </div>
         <button
           disabled={pending}
@@ -131,11 +132,21 @@ function NoticeItem({
   const [body, setBody] = useState(n.body ?? "");
 
   return (
-    <li className={`rounded-2xl bg-surface p-4 ${n.is_active ? "" : "opacity-60"}`}>
+    <li
+      className={`rounded-2xl bg-surface p-4 ${n.is_active ? "" : "opacity-60"}`}
+    >
       {editing ? (
         <div className="space-y-2">
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} />
-          <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={60}
+          />
+          <AutoTextarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            minRows={4}
+          />
           <div className="flex gap-2">
             <button
               disabled={pending}
@@ -165,7 +176,9 @@ function NoticeItem({
         <>
           <div className="flex items-baseline justify-between gap-2">
             <p className="text-sm font-medium text-neutral-100">{n.title}</p>
-            <span className="shrink-0 text-xs text-neutral-600">{ko(n.created_at)}</span>
+            <span className="shrink-0 text-xs text-neutral-600">
+              {ko(n.created_at)}
+            </span>
           </div>
           {n.body && (
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-neutral-400">
@@ -185,7 +198,7 @@ function NoticeItem({
               onClick={() =>
                 act(
                   () => setNoticeActive(n.id, !n.is_active),
-                  n.is_active ? "공지를 내렸어요." : "공지를 다시 올렸어요."
+                  n.is_active ? "공지를 내렸어요." : "공지를 다시 올렸어요.",
                 )
               }
               className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300 disabled:opacity-50"
@@ -194,7 +207,9 @@ function NoticeItem({
             </button>
             <button
               disabled={pending}
-              onClick={() => act(() => deleteNotice(n.id), "공지를 삭제했어요.")}
+              onClick={() =>
+                act(() => deleteNotice(n.id), "공지를 삭제했어요.")
+              }
               className="ml-auto rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-500 hover:text-red-300 disabled:opacity-50"
             >
               삭제
