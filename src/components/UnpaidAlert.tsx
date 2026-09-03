@@ -2,9 +2,9 @@ import { won, payable, type Fine } from "@/lib/types";
 import { todayISO } from "@/lib/night-study";
 
 /**
- * 미납 벌금 알림.
- * 벌금마다 기한이 다르므로 "가장 급한 한 건"을 기준으로 안내한다.
- * (합계 금액과 기한을 섞어 말하면 그 금액 전체가 그날 2배 되는 것처럼 읽힌다)
+ * 미납 벌금 요약.
+ * 날짜는 일부러 쓰지 않는다 — 벌금마다 기한이 달라서, 요약에 특정 날짜를 적으면
+ * 바로 아래 부과 내역의 날짜와 어긋나 보인다. 자세한 건 목록에서 확인하게 한다.
  */
 export function UnpaidAlert({ fines, doubleEnabled }: { fines: Fine[]; doubleEnabled: boolean }) {
   if (fines.length === 0) return null;
@@ -12,29 +12,20 @@ export function UnpaidAlert({ fines, doubleEnabled }: { fines: Fine[]; doubleEna
   const total = fines.reduce((a, f) => a + payable(f), 0);
   const today = new Date(todayISO() + "T00:00:00+09:00").getTime();
 
-  const withDays = fines
-    .map((f) => ({
-      fine: f,
-      days: Math.round(
-        (new Date(f.due_date + "T00:00:00+09:00").getTime() - today) / 86400000
-      ),
-    }))
-    .sort((a, b) => a.days - b.days);
+  const daysLeft = fines.map((f) =>
+    Math.round((new Date(f.due_date + "T00:00:00+09:00").getTime() - today) / 86400000)
+  );
 
-  const soonest = withDays[0];
-  const overdue = withDays.filter((x) => x.days < 0).length;
-  const d = soonest.days;
-  const due = new Date(soonest.fine.due_date + "T00:00:00+09:00");
-  const label = `${due.getMonth() + 1}월 ${due.getDate()}일`;
-  const amount = won(payable(soonest.fine));
+  const soonest = Math.min(...daysLeft);
+  const overdue = daysLeft.filter((d) => d < 0).length;
 
   let line: string;
   if (overdue > 0) {
     line = `기한이 지난 벌금이 ${overdue}건 있어요.`;
-  } else if (d === 0) {
-    line = `오늘이 기한인 벌금이 있어요. ${amount}`;
+  } else if (soonest === 0) {
+    line = "오늘이 기한인 벌금이 있어요.";
   } else {
-    line = `가장 빠른 기한은 ${label} (${d}일 뒤) · ${amount}`;
+    line = `가장 빠른 기한이 ${soonest}일 남았어요.`;
   }
 
   return (
@@ -45,7 +36,7 @@ export function UnpaidAlert({ fines, doubleEnabled }: { fines: Fine[]; doubleEna
       <p className="mt-1 text-2xl font-bold text-red-400">{won(total)}</p>
       <p className="mt-1.5 text-xs text-neutral-400">
         {line}
-        {doubleEnabled && " 기한을 넘기면 그 건만 2배가 돼요."}
+        {doubleEnabled && " 건별로 기한이 다르니 아래에서 확인하세요."}
       </p>
     </section>
   );
