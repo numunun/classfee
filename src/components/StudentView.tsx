@@ -168,12 +168,7 @@ export async function StudentView({
       </div>
 
       <div className="mt-3">
-        <UnpaidAlert
-          count={owing.length}
-          total={owingTotal}
-          nextDue={nextDue}
-          doubleEnabled={s.double_fine_enabled}
-        />
+        <UnpaidAlert fines={selectable} doubleEnabled={s.double_fine_enabled} />
       </div>
 
       <div className="mt-3">
@@ -234,7 +229,7 @@ export async function StudentView({
           <p className="mt-1 text-3xl font-bold text-red-400">{won(owingTotal)}</p>
           {nextDue && s.double_fine_enabled && (
             <p className="mt-2 text-sm text-neutral-400">
-              🕐 {ko(nextDue)}까지 안 내면 2배가 돼요
+              가장 빠른 기한 {ko(nextDue)} · 건별로 기한이 달라요
             </p>
           )}
         </section>

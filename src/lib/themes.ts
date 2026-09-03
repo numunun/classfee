@@ -242,6 +242,46 @@ button.bg-surface-2,a.bg-surface-2{
 }
 `;
 
+/**
+ * 밝은 테마가 남긴 색 반전을 되돌린다.
+ * 루트 레이아웃이 넣은 테마 위에 다른 테마(또는 기본)를 덮어쓸 때 필요하다.
+ * :root 변수만 되돌리면 !important 로 박힌 클래스 규칙이 그대로 남는다.
+ */
+const DARK_OVERRIDES = `
+.text-white{color:#FFFFFF !important;}
+.text-neutral-100{color:#F5F5F5 !important;}
+.text-neutral-200{color:#E5E5E5 !important;}
+.text-neutral-300{color:#D4D4D4 !important;}
+.text-neutral-400{color:#A3A3A3 !important;}
+.text-neutral-500{color:#737373 !important;}
+.text-neutral-600{color:#525252 !important;}
+.text-neutral-700{color:#404040 !important;}
+.text-neutral-900{color:#171717 !important;}
+body{color:#F5F5F5;}
+label{color:#A3A3A3;}
+input,select,textarea{color:#F5F5F5;}
+.bg-white{background-color:#FFFFFF !important;}
+.bg-red-950\\/40{background-color:rgb(69 10 10 / .4) !important;}
+.bg-red-950{background-color:rgb(69 10 10) !important;}
+.bg-amber-950\\/40{background-color:rgb(69 26 3 / .4) !important;}
+.bg-amber-950\\/30{background-color:rgb(69 26 3 / .3) !important;}
+.bg-amber-950{background-color:rgb(69 26 3) !important;}
+.bg-green-950{background-color:rgb(5 46 22) !important;}
+.bg-blue-950\\/25{background-color:rgb(23 37 84 / .25) !important;}
+.bg-blue-900\\/60{background-color:rgb(30 58 138 / .6) !important;}
+.text-red-300{color:#FCA5A5 !important;}
+.text-red-400{color:#F87171 !important;}
+.text-red-400\\/80{color:rgb(248 113 113 / .8) !important;}
+.text-amber-300{color:#FCD34D !important;}
+.text-amber-400{color:#FBBF24 !important;}
+.text-amber-400\\/70{color:rgb(251 191 36 / .7) !important;}
+.text-amber-400\\/80{color:rgb(251 191 36 / .8) !important;}
+.text-green-300{color:#86EFAC !important;}
+.text-green-400{color:#4ADE80 !important;}
+.text-blue-200{color:#BFDBFE !important;}
+.text-blue-300{color:#93C5FD !important;}
+`;
+
 /** 테마가 없을 때 되돌릴 기본값. globals.css 의 :root 와 같아야 한다. */
 const DEFAULT_ROOT =
   ":root{color-scheme:dark;" +
@@ -254,7 +294,7 @@ const DEFAULT_ROOT =
  * 빈 문자열을 주면 앞 화면(관리자 본인 테마)의 값이 남아 미리보기가 오염된다.
  */
 export function themeCss(theme: Theme | null): string {
-  if (!theme) return DEFAULT_ROOT;
+    if (!theme) return DEFAULT_ROOT + DARK_OVERRIDES + GLASS;
 
   const vars = [`--c-accent:${rgbTriplet(theme.accent)};`];
   if (theme.palette) {
@@ -266,6 +306,6 @@ export function themeCss(theme: Theme | null): string {
     );
   }
   const root = `:root{color-scheme:${theme.mode === "light" ? "light" : "dark"};${vars.join("")}}`;
-  const base = theme.mode === "light" ? root + LIGHT_OVERRIDES : root;
+  const base = theme.mode === "light" ? root + LIGHT_OVERRIDES : root + DARK_OVERRIDES;
   return base + GLASS + motionCss(theme);
 }
