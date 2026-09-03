@@ -40,6 +40,8 @@ export interface Settings {
   neis_atpt_code: string;
   neis_school_code: string;
   class_label: string;
+  maintenance_on: boolean;
+  maintenance_text: string | null;
 }
 
 export interface Fine {

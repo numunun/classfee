@@ -273,6 +273,8 @@ export async function saveSettings(formData: FormData) {
       neis_atpt_code: String(formData.get("atpt") || "G10").trim(),
       neis_school_code: String(formData.get("schoolCode") || "").trim(),
       class_label: String(formData.get("classLabel") || "").trim() || "우리 반",
+      maintenance_on: formData.get("maintenanceOn") === "on",
+      maintenance_text: String(formData.get("maintenanceText") || "").trim() || null,
     })
     .eq("id", 1);
   if (error) throw new Error(error.message);

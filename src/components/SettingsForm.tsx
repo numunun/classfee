@@ -8,10 +8,31 @@ import type { Settings } from "@/lib/types";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl bg-surface p-5">
-      <h2 className="mb-4 text-sm font-medium text-neutral-200">{title}</h2>
-      <div className="space-y-3">{children}</div>
-    </section>
+      <section className="space-y-3 rounded-2xl bg-surface p-5">
+        <h2 className="font-medium">🛠 점검 모드</h2>
+        <p className="text-xs leading-relaxed text-neutral-500">
+          켜면 모든 화면 맨 위에 안내 배너가 떠요. 공지를 올렸다 내리지 않아도 돼요.
+        </p>
+        <label className="flex cursor-pointer items-center gap-3">
+          <input
+            type="checkbox"
+            name="maintenanceOn"
+            defaultChecked={s.maintenance_on}
+            className="size-4 !w-auto"
+          />
+          <span className="text-sm text-neutral-200">점검 모드 켜기</span>
+        </label>
+        <div>
+          <label htmlFor="maintenanceText">배너 문구 (비우면 기본 문구)</label>
+          <input
+            id="maintenanceText"
+            name="maintenanceText"
+            defaultValue={s.maintenance_text ?? ""}
+            placeholder="접속은 가능하지만 일부 기능이 원활하지 않을 수 있습니다."
+            className="mt-1.5"
+          />
+        </div>
+      </section>
   );
 }
 
