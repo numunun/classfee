@@ -157,7 +157,7 @@ export function SettingsForm({ s }: { s: Settings }) {
             defaultChecked={s.double_fine_enabled}
             className="size-4 !w-auto"
           />
-          <span className="text-sm text-neutral-200">기한 초과 시 7일마다 2배 (최대 4배)</span>
+          <span className="text-sm text-neutral-200">기한 초과 시 벌금 2배</span>
         </label>
       </Card>
 

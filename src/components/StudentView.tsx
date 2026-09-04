@@ -229,7 +229,7 @@ export async function StudentView({
           <p className="mt-1 text-3xl font-bold text-red-400">{won(owingTotal)}</p>
           {nextDue && s.double_fine_enabled && (
             <p className="mt-2 text-sm text-neutral-400">
-              기한을 넘긴 건은 7일마다 2배가 돼요 (최대 4배)
+              기한을 넘긴 건은 7일마다 2배가 돼요
             </p>
           )}
         </section>
