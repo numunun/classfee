@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { RichText } from "@/components/RichText";
 import {
   createNotice,
   updateNotice,
@@ -74,7 +75,10 @@ export function NoticeManager({ rows }: { rows: NoticeRow[] }) {
           />
         </div>
         <div>
-          <label htmlFor="body">내용 (선택)</label>
+          <label htmlFor="body">
+            내용 (선택) · <span className="font-mono">**굵게**</span>{" "}
+            <span className="font-mono">~~취소선~~</span>
+          </label>
           <AutoTextarea id="body" name="body" minRows={4} className="mt-1.5" />
         </div>
         <button
@@ -181,9 +185,7 @@ function NoticeItem({
             </span>
           </div>
           {n.body && (
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-neutral-400">
-              {n.body}
-            </p>
+            <RichText text={n.body} className="mt-1 text-sm leading-relaxed text-neutral-400" />
           )}
           <div className="mt-3 flex gap-2">
             <button

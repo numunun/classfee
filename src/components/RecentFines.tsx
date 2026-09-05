@@ -16,7 +16,7 @@ import {
 export type FineRow = Fine & { students: { name: string } | null };
 
 /**
- * 상태별 세로 색선.
+ * 상태별 색.
  * 밝은 테마(주황 계열)에서도 구분되도록 인라인 hex 로 고정한다.
  * Tailwind 색 클래스를 쓰면 테마의 색 반전 규칙에 걸리거나 배경에 묻힌다.
  */
@@ -50,12 +50,11 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
         )}
       </div>
 
-      <ul className="divide-y divide-line overflow-hidden rounded-b-2xl">
+      <ul className="overflow-hidden rounded-b-2xl">
         {shown.map((f) => {
           const cancelled = !!f.deleted_at;
           // 끝난 건(완납·취소)은 흐리게 물러나고, 처리할 건만 또렷하게 남는다
           const done = cancelled || f.status === "paid";
-          const paid = !cancelled && f.status === "paid";
           const label = FINE_TYPE_LABEL[f.type as FineType];
           // 사유가 종류와 같은 말이면(지각 → "지각") 중복이라 숨긴다
           const note = f.reason && f.reason !== label ? f.reason : null;
@@ -63,18 +62,25 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
           return (
             <li
               key={f.id}
-              className={`flex items-center gap-3 py-3 pl-3 pr-4 ${done ? "opacity-45" : ""}`}
-              style={{
-                boxShadow: cancelled
-                  ? undefined
-                  : `inset 4px 0 0 ${EDGE[f.status] ?? "transparent"}`,
-              }}
+              className={`relative flex items-center gap-3 border-t border-line py-3 pl-4 pr-4 first:border-t-0 ${
+                done ? "opacity-45" : ""
+              }`}
             >
+              {/* 상태 표시는 행 높이와 무관한 알약으로 그린다.
+                  행 전체에 걸치면 구분선과 부딪히고 길이도 제각각으로 보인다. */}
+              {!cancelled && EDGE[f.status] && (
+                <span
+                  aria-hidden
+                  className="absolute left-1.5 top-1/2 h-8 w-1 -translate-y-1/2 rounded-full"
+                  style={{ background: EDGE[f.status] }}
+                />
+              )}
+
               <Avatar name={f.students?.name ?? "?"} />
 
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-2">
-                  <span className={`truncate font-semibold ${paid ? "line-through" : ""}`}>
+                  <span className={`truncate font-semibold ${done ? "line-through" : ""}`}>
                     {f.students?.name}
                   </span>
                   <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-neutral-400">
@@ -99,7 +105,7 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
 
               <span
                 className={`w-[4.5rem] shrink-0 text-right font-semibold tabular-nums ${
-                  paid ? "line-through" : ""
+                  done ? "line-through" : ""
                 }`}
               >
                 {won(payable(f))}

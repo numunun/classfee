@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { RichText } from "@/components/RichText";
 
 type Notice = {
   id: string;
@@ -35,9 +36,10 @@ export async function NoticeBoard() {
               <span className="shrink-0 text-xs text-neutral-600">{ko(n.created_at)}</span>
             </div>
             {n.body && (
-              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-neutral-300">
-                {n.body}
-              </p>
+              <RichText
+                text={n.body}
+                className="mt-1 text-sm leading-relaxed text-neutral-300"
+              />
             )}
           </li>
         ))}
