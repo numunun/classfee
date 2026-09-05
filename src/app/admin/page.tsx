@@ -2,12 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireStudent } from "@/lib/auth";
 import { TopBar } from "@/components/TopBar";
-import { Avatar } from "@/components/Avatar";
-import { StatusBadge } from "@/components/StatusBadge";
-import { CancelFineButton } from "@/components/CancelFineButton";
-import { FINE_TYPE_LABEL, payable, won, shortDate, type Fine, type FineType } from "@/lib/types";
-
-type Row = Fine & { students: { name: string } | null };
+import { RecentFines, type FineRow } from "@/components/RecentFines";
+import { payable, won } from "@/lib/types";
 
 export default async function AdminDashboard() {
   const me = await requireStudent();
@@ -17,7 +13,7 @@ export default async function AdminDashboard() {
     .from("fines")
     .select("*, students!fines_student_id_fkey(name)")
     .order("created_at", { ascending: false });
-  const fines = (finesData ?? []) as Row[];
+  const fines = (finesData ?? []) as FineRow[];
 
   // 취소된 건은 목록에는 남기되(왜 사라졌는지 알 수 있게) 통계에서는 뺀다.
   const live = fines.filter((f) => !f.deleted_at);
@@ -53,61 +49,9 @@ export default async function AdminDashboard() {
         <Action href="/admin/debug">진단</Action>
       </nav>
 
-      <section className="mt-5 rounded-2xl bg-surface">
-        <h2 className="px-4 py-3 text-sm font-medium text-neutral-300">최근 벌금 내역</h2>
-        <ul className="divide-y divide-line">
-          {fines.slice(0, 30).map((f) => {
-            const cancelled = !!f.deleted_at;
-            return (
-              <li
-                key={f.id}
-                className={`flex items-center gap-3 px-4 py-3 ${cancelled ? "opacity-45" : ""}`}
-              >
-                <Avatar name={f.students?.name ?? "?"} />
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-sm ${cancelled ? "line-through" : ""}`}>
-                    {f.students?.name} — {FINE_TYPE_LABEL[f.type as FineType]}
-                    {f.type === "cleaning" && !cancelled && (
-                      <span className="ml-1 text-xs text-neutral-500">(자동 기입)</span>
-                    )}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    {f.reason ? f.reason + " · " : ""}
-                    {shortDate(f.created_at)} 부과
-                    {cancelled && f.delete_reason ? ` · ${f.delete_reason}` : ""}
-                  </p>
-                </div>
-
-                {cancelled ? (
-                  <span className="rounded-md border border-line px-2 py-0.5 text-xs text-neutral-500">
-                    취소됨
-                  </span>
-                ) : (
-                  <StatusBadge status={f.status} />
-                )}
-
-                <span
-                  className={`w-16 text-right text-sm font-medium ${cancelled ? "line-through" : ""}`}
-                >
-                  {won(payable(f))}
-                </span>
-
-                {/* 취소된 건은 다시 취소할 수 없다 */}
-                {cancelled ? (
-                  <span className="w-[38px]" />
-                ) : (
-                  <CancelFineButton fineId={f.id} />
-                )}
-              </li>
-            );
-          })}
-          {fines.length === 0 && (
-            <li className="px-4 py-8 text-center text-sm text-neutral-500">
-              아직 부과된 벌금이 없어요. &quot;새 벌금 부과&quot;로 시작하세요.
-            </li>
-          )}
-        </ul>
-      </section>
+      <div className="mt-5">
+        <RecentFines rows={fines} />
+      </div>
     </>
   );
 }
