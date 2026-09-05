@@ -16,29 +16,26 @@ export default async function AdminDashboard() {
   const { data: finesData } = await supabase
     .from("fines")
     .select("*, students!fines_student_id_fkey(name)")
-    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   const fines = (finesData ?? []) as Row[];
 
-  const now = new Date();
-  const thisMonth = fines.filter((f) => {
-    const d = new Date(f.created_at);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
-  const monthTotal = thisMonth.reduce((a, f) => a + payable(f), 0);
-  const unpaidTotal = fines
+  // 취소된 건은 목록에는 남기되(왜 사라졌는지 알 수 있게) 통계에서는 뺀다.
+  const live = fines.filter((f) => !f.deleted_at);
+
+  const total = live.reduce((a, f) => a + payable(f), 0);
+  const unpaidTotal = live
     .filter((f) => f.status === "unpaid" || f.status === "doubled")
     .reduce((a, f) => a + payable(f), 0);
-  const pendingCount = fines.filter((f) => f.status === "pending_approval").length;
-  const paidCount = fines.filter((f) => f.status === "paid").length;
-  const rate = fines.length ? Math.round((paidCount / fines.length) * 100) : 0;
+  const pendingCount = live.filter((f) => f.status === "pending_approval").length;
+  const paidCount = live.filter((f) => f.status === "paid").length;
+  const rate = live.length ? Math.round((paidCount / live.length) * 100) : 0;
 
   return (
     <>
       <TopBar title="학급 관리" who={`${me.name} (관리자)`} here="admin" />
 
       <section className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Stat label="이번 달 부과" value={won(monthTotal)} />
+        <Stat label="총 부과 (취소 제외)" value={won(total)} />
         <Stat label="미납" value={won(unpaidTotal)} tone="red" />
         <Stat label="납부 대기" value={`${pendingCount}건`} tone="amber" />
         <Stat label="완납률" value={`${rate}%`} />
@@ -59,26 +56,51 @@ export default async function AdminDashboard() {
       <section className="mt-5 rounded-2xl bg-surface">
         <h2 className="px-4 py-3 text-sm font-medium text-neutral-300">최근 벌금 내역</h2>
         <ul className="divide-y divide-line">
-          {fines.slice(0, 30).map((f) => (
-            <li key={f.id} className="flex items-center gap-3 px-4 py-3">
-              <Avatar name={f.students?.name ?? "?"} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">
-                  {f.students?.name} — {FINE_TYPE_LABEL[f.type as FineType]}
-                  {f.type === "cleaning" && (
-                    <span className="ml-1 text-xs text-neutral-500">(자동 기입)</span>
-                  )}
-                </p>
-                <p className="text-xs text-neutral-500">
-                  {f.reason ? f.reason + " · " : ""}
-                  {shortDate(f.created_at)} 부과
-                </p>
-              </div>
-              <StatusBadge status={f.status} />
-              <span className="w-16 text-right text-sm font-medium">{won(payable(f))}</span>
-              <CancelFineButton fineId={f.id} />
-            </li>
-          ))}
+          {fines.slice(0, 30).map((f) => {
+            const cancelled = !!f.deleted_at;
+            return (
+              <li
+                key={f.id}
+                className={`flex items-center gap-3 px-4 py-3 ${cancelled ? "opacity-45" : ""}`}
+              >
+                <Avatar name={f.students?.name ?? "?"} />
+                <div className="min-w-0 flex-1">
+                  <p className={`truncate text-sm ${cancelled ? "line-through" : ""}`}>
+                    {f.students?.name} — {FINE_TYPE_LABEL[f.type as FineType]}
+                    {f.type === "cleaning" && !cancelled && (
+                      <span className="ml-1 text-xs text-neutral-500">(자동 기입)</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {f.reason ? f.reason + " · " : ""}
+                    {shortDate(f.created_at)} 부과
+                    {cancelled && f.delete_reason ? ` · ${f.delete_reason}` : ""}
+                  </p>
+                </div>
+
+                {cancelled ? (
+                  <span className="rounded-md border border-line px-2 py-0.5 text-xs text-neutral-500">
+                    취소됨
+                  </span>
+                ) : (
+                  <StatusBadge status={f.status} />
+                )}
+
+                <span
+                  className={`w-16 text-right text-sm font-medium ${cancelled ? "line-through" : ""}`}
+                >
+                  {won(payable(f))}
+                </span>
+
+                {/* 취소된 건은 다시 취소할 수 없다 */}
+                {cancelled ? (
+                  <span className="w-[38px]" />
+                ) : (
+                  <CancelFineButton fineId={f.id} />
+                )}
+              </li>
+            );
+          })}
           {fines.length === 0 && (
             <li className="px-4 py-8 text-center text-sm text-neutral-500">
               아직 부과된 벌금이 없어요. &quot;새 벌금 부과&quot;로 시작하세요.
