@@ -16,7 +16,7 @@ export function RichText({ text, className }: { text: string; className?: string
       {parts.map((part, i) => {
         if (part.startsWith("**") && part.endsWith("**")) {
           return (
-            <strong key={i} className="font-bold text-neutral-100">
+            <strong key={i} className="font-bold">
               {part.slice(2, -2)}
             </strong>
           );
