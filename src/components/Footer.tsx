@@ -1,3 +1,4 @@
+import Link from "next/link";
 // GitHub 옥토캣 마크.
 // 조각을 join(" ") 으로 잇는다 — 문자열을 그냥 + 로 붙이면
 // 경계에서 공백이 사라져 좌표가 어긋난다 ("2.2" + "0" -> "2.20").
@@ -37,6 +38,7 @@ export function Footer() {
         <GithubIcon />
         <span>numunun</span>
       </a>
+      <Link href="/terms" className="text-neutral-600 hover:text-neutral-400">이용약관</Link>
     </footer>
   );
 }

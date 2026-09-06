@@ -10,6 +10,8 @@ import { getTheme, themeCss } from "@/lib/themes";
 import { ThemeBackdrop } from "@/components/ThemeBackdrop";
 import { NightStudyReport, type SessionState } from "@/components/NightStudyReport";
 import { UnpaidAlert } from "@/components/UnpaidAlert";
+import { TermsGate } from "@/components/TermsGate";
+import { TERMS_VERSION } from "@/lib/terms";
 import { FINE_TYPE_LABEL, payable, won, type Fine, type Student } from "@/lib/types";
 import { getSettings } from "@/lib/settings";
 import {
@@ -138,6 +140,10 @@ export async function StudentView({
           이전 화면(관리자 본인 테마)의 색이 남지 않는다. */}
       <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
       {theme && <ThemeBackdrop theme={theme} />}
+
+      {/* 아직 동의하지 않았거나 약관이 바뀌었으면 관문을 띄운다.
+          관리자 미리보기(readOnly)에서는 띄우지 않는다. */}
+      {!readOnly && me.terms_version !== TERMS_VERSION && <TermsGate />}
 
       <PageShell>
         {readOnly ? (

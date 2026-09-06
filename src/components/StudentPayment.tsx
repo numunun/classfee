@@ -106,7 +106,7 @@ export function StudentPayment({
             </div>
 
             {/* 본문 (스크롤) */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               <p className="mb-2 text-xs font-medium text-neutral-400">납부한 항목</p>
               <ul className="space-y-2">
                 {fines.map((f) => {

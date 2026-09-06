@@ -26,6 +26,8 @@ export interface Student {
   role: Role;
   is_independent?: boolean;
   auth_user_id: string | null;
+  terms_agreed_at?: string | null;
+  terms_version?: string | null;
 }
 
 export interface Settings {
