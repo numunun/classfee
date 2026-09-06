@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { CancelFineButton } from "@/components/CancelFineButton";
+import { WaiveOverdueButton } from "@/components/WaiveOverdueButton";
 import {
   FINE_TYPE_LABEL,
   payable,
@@ -111,7 +112,10 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
                 {won(payable(f))}
               </span>
 
-              <span className="w-11 shrink-0 text-right">
+              <span className="flex w-[5.5rem] shrink-0 justify-end gap-1">
+                {!cancelled && (f.overdue_multiplier ?? 1) > 1 && (
+                  <WaiveOverdueButton fineId={f.id} />
+                )}
                 {!cancelled && <CancelFineButton fineId={f.id} />}
               </span>
             </li>

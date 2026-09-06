@@ -59,6 +59,8 @@ export interface Fine {
   deleted_at: string | null;
   delete_reason?: string | null;
   overdue_multiplier?: number;
+  overdue_waived?: boolean;
+  overdue_waive_reason?: string | null;
 }
 
 /** 실제로 내야 할 금액. 연체 배수를 반영한다. (규정 ⑧⑨: 7일마다 2배, 최대 4배) */

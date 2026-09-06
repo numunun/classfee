@@ -281,3 +281,30 @@ export async function saveSettings(formData: FormData) {
   revalidateTag("settings");
   revalidatePath("/admin/settings");
 }
+
+// ---------- 연체 배수 면제 (구제) ----------
+// 이미 입금했는데 신청을 깜빡했거나 장애로 누락된 경우, 2배를 1배로 되돌린다.
+export async function waiveOverdue(fineId: string, reason: string): Promise<ActionResult> {
+  const me = await assertAdmin();
+  if (!reason.trim()) return { ok: false, message: "면제 사유를 입력하세요." };
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("fines")
+    .update({
+      overdue_multiplier: 1,
+      status: "unpaid",
+      overdue_waived: true,
+      overdue_waived_by: me.id,
+      overdue_waive_reason: reason.trim(),
+    })
+    .eq("id", fineId)
+    .is("deleted_at", null)
+    .select("id");
+
+  if (error) return { ok: false, message: error.message };
+  if (!data?.length) return { ok: false, message: "이미 취소된 벌금이에요." };
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
