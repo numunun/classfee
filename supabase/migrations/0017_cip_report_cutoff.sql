@@ -35,9 +35,6 @@ begin
   if p_status not in ('present','academy','hospital','special','other') then
     raise exception '올바르지 않은 상태입니다.';
   end if;
-  if p_status <> 'present' and (p_reason is null or length(trim(p_reason)) = 0) then
-    raise exception '사유를 입력하세요.';
-  end if;
 
   select * into v_row from public.night_study_records
    where student_id = v_me and study_date = v_today and session = p_session;
