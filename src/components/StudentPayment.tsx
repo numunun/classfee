@@ -10,9 +10,12 @@ import { FINE_TYPE_LABEL, payable, won, type Fine } from "@/lib/types";
 export function StudentPayment({
   fines,
   myName,
+  isCollector = false,
 }: {
   fines: Fine[]; // 신청 가능한 미납/2배 건만 전달됨
   myName: string;
+  /** 입금 계좌 예금주(부반장)면 영수증 없이 신청할 수 있다 */
+  isCollector?: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -40,7 +43,7 @@ export function StudentPayment({
   async function submit() {
     if (picked.size === 0) return toast("납부할 항목을 선택하세요.", "error");
     if (!depositor.trim()) return toast("입금자명을 입력하세요.", "error");
-    if (!file) return toast("입금 완료 화면 사진을 첨부하세요.", "error");
+    if (!file && !isCollector) return toast("입금 완료 화면 사진을 첨부하세요.", "error");
 
     setBusy(true);
     try {
@@ -50,9 +53,12 @@ export function StudentPayment({
       } = await supabase.auth.getUser();
       if (!user) throw new Error("로그인이 만료됐어요. 새로고침 해주세요.");
 
-      const path = `${user.id}/${Date.now()}-${file.name}`;
-      const up = await supabase.storage.from("receipts").upload(path, file);
-      if (up.error) throw new Error("사진 업로드 실패: " + up.error.message);
+      let path = "";
+      if (file) {
+        path = `${user.id}/${Date.now()}-${file.name}`;
+        const up = await supabase.storage.from("receipts").upload(path, file);
+        if (up.error) throw new Error("사진 업로드 실패: " + up.error.message);
+      }
 
       const { error } = await supabase.rpc("create_payment_request", {
         p_fine_ids: Array.from(picked),
@@ -161,7 +167,7 @@ export function StudentPayment({
               </div>
 
               <div className="mt-3">
-                <label>입금 완료 화면 사진</label>
+                <label>입금 완료 화면 사진{isCollector ? " (예금주는 생략 가능)" : ""}</label>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}

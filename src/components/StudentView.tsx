@@ -254,7 +254,11 @@ export async function StudentView({
 
       {!readOnly && (
         <div className="mt-3">
-          <StudentPayment fines={selectable} myName={me.name} />
+        <StudentPayment
+            fines={selectable}
+            myName={me.name}
+            isCollector={s.collector_student_number === me.student_number}
+          />
         </div>
       )}
 

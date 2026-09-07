@@ -44,6 +44,7 @@ export interface Settings {
   class_label: string;
   maintenance_on: boolean;
   maintenance_text: string | null;
+  collector_student_number: number | null;
 }
 
 export interface Fine {
