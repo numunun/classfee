@@ -23,8 +23,12 @@ export default async function AdminDashboard() {
     .filter((f) => f.status === "unpaid" || f.status === "doubled")
     .reduce((a, f) => a + payable(f), 0);
   const pendingCount = live.filter((f) => f.status === "pending_approval").length;
-  const paidCount = live.filter((f) => f.status === "paid").length;
-  const rate = live.length ? Math.round((paidCount / live.length) * 100) : 0;
+  // 완납률은 건수가 아니라 금액 기준으로 낸다.
+  // 2배가 된 건이 섞이면 건수 비율은 실제 걷힌 비율과 어긋난다.
+  const paidTotal = live
+    .filter((f) => f.status === "paid")
+    .reduce((a, f) => a + payable(f), 0);
+  const rate = total ? Math.round((paidTotal / total) * 100) : 0;
 
   return (
     <>

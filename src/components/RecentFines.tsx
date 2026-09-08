@@ -96,7 +96,7 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
                 </p>
               </div>
 
-              <span className="w-14 shrink-0 text-center">
+              <span className="w-[4.5rem] shrink-0 text-center">
                 {cancelled ? (
                   <span className="text-xs text-neutral-500">취소됨</span>
                 ) : (
@@ -112,7 +112,7 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
                 {won(payable(f))}
               </span>
 
-              <span className="flex w-[5.5rem] shrink-0 justify-end gap-1">
+              <span className="flex w-[7.5rem] shrink-0 justify-end gap-1.5">
                 {!cancelled && (f.overdue_multiplier ?? 1) > 1 && (
                   <WaiveOverdueButton fineId={f.id} />
                 )}

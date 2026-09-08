@@ -8,7 +8,7 @@ const STYLE: Record<FineStatus, string> = {
 };
 const TEXT: Record<FineStatus, string> = {
   unpaid: "미납",
-  doubled: "미납·2배",
+  doubled: "2배",
   pending_approval: "승인 대기",
   paid: "완납",
 };

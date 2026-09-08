@@ -16,7 +16,7 @@ export function CancelFineButton({ fineId }: { fineId: string }) {
       <button
         onClick={() => setOpen(true)}
         aria-label="벌금 취소"
-        className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-neutral-400 hover:text-red-300"
+        className="whitespace-nowrap rounded-lg bg-surface-2 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:text-red-300"
       >
         취소
       </button>
