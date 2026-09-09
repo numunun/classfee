@@ -1,9 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// 매 요청마다 세션을 갱신하고, 비로그인 사용자를 /login 으로 보낸다.
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  // 현재 경로를 요청 헤더에 심는다. 서버 컴포넌트의 headers() 는 "요청" 헤더만 읽으므로
+  // 응답 헤더(response.headers)에 넣으면 컴포넌트가 못 읽는다.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", request.nextUrl.pathname);
+
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,7 +19,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -41,7 +45,5 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 현재 경로를 헤더로 전달한다. 서버 컴포넌트(점검 배너)가 경로를 알 수 있게.
-  response.headers.set("x-pathname", path);
   return response;
 }
