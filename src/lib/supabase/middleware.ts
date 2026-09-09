@@ -41,5 +41,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // 현재 경로를 헤더로 전달한다. 서버 컴포넌트(점검 배너)가 경로를 알 수 있게.
+  response.headers.set("x-pathname", path);
   return response;
 }

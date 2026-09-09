@@ -58,10 +58,16 @@ export async function createLateFine(formData: FormData) {
   const reason = String(formData.get("reason") || "");
   if (!studentId) throw new Error("학생을 선택하세요");
 
+  // 지각은 누진제. 금액은 DB 함수가 계산한다 (횟수는 서버만 신뢰).
+  const { data: amount, error: amtErr } = await supabase.rpc("next_late_amount", {
+    p_student: studentId,
+  });
+  if (amtErr) throw new Error(amtErr.message);
+
   const { error } = await supabase.from("fines").insert({
     student_id: studentId,
     type: "late",
-    amount: s.late_fine_amount,
+    amount: amount ?? s.late_fine_amount,
     reason: reason || "지각",
     occurred_date: occurred,
     due_date: addDays(occurred, s.payment_deadline_days),

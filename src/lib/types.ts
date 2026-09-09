@@ -45,6 +45,8 @@ export interface Settings {
   maintenance_on: boolean;
   maintenance_text: string | null;
   collector_student_number: number | null;
+  late_policy_start: string | null;
+  late_fine_cap: number;
 }
 
 export interface Fine {
