@@ -265,24 +265,7 @@ export async function StudentView({
       <section className="mt-5">
         <h2 className="mb-2 text-sm font-medium text-neutral-300">부과 내역</h2>
         <ul className="space-y-2">
-          {fines.map((f) => {
-            if (f.deleted_at) {
-              return (
-                <li key={f.id} className="rounded-xl border-l-4 border-l-neutral-800 bg-surface p-3.5 opacity-50">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium line-through">
-                      {FINE_TYPE_LABEL[f.type]}
-                    </span>
-                    <span className="text-sm font-semibold line-through">{won(payable(f))}</span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-neutral-500">
-                    {f.reason ? f.reason + " · " : ""}
-                    {ko(f.occurred_date)} 부과
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-400">취소됨</p>
-                </li>
-              );
-            }
+          {live.map((f) => {
             const tone =
               f.status === "unpaid" || f.status === "doubled"
                 ? "border-l-red-500 bg-red-950/40"
@@ -315,7 +298,7 @@ export async function StudentView({
               </li>
             );
           })}
-          {fines.length === 0 && (
+          {live.length === 0 && (
             <li className="rounded-xl bg-surface px-4 py-8 text-center text-sm text-neutral-500">
               부과된 벌금이 없어요. 👍
             </li>
