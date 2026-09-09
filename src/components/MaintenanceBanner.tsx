@@ -1,13 +1,8 @@
-import { headers } from "next/headers";
 import { getSettings } from "@/lib/settings";
 import { RichText } from "@/components/RichText";
 
-/** 점검 모드가 켜져 있을 때만 뜨는 안내. 전자칠판(/board)에는 띄우지 않는다. */
+/** 점검 모드가 켜져 있을 때만 뜨는 안내 */
 export async function MaintenanceBanner() {
-  // 전자칠판은 교실에 상시 띄워두는 공용 화면이라 배너를 제외한다.
-  const path = headers().get("x-pathname") ?? "";
-  if (path.startsWith("/board")) return null;
-
   const s = await getSettings();
   if (!s?.maintenance_on) return null;
 

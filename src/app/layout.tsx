@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { Footer } from "@/components/Footer";
-import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 import { getCurrentStudent } from "@/lib/auth";
 import { getTheme, themeCss } from "@/lib/themes";
 
@@ -33,7 +32,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-ink text-neutral-100 antialiased">
         <ToastProvider>
-          <MaintenanceBanner />
           {children}
           <Footer />
         </ToastProvider>

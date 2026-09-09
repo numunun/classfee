@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireStudent } from "@/lib/auth";
+import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 import { PageShell } from "@/components/PageShell";
 import { ThemeBackdrop } from "@/components/ThemeBackdrop";
 import { getTheme, themeCss } from "@/lib/themes";
@@ -19,6 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <ThemeBackdrop theme={theme} />
         </>
       )}
+      <MaintenanceBanner />
       <PageShell>{children}</PageShell>
     </>
   );
