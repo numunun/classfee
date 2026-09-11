@@ -8,7 +8,7 @@ export function TermsBody() {
         <h1 className="text-lg font-bold text-neutral-100">
           이용약관 및 개인정보 처리방침
         </h1>
-        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 9월 7일</p>
+        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 9월 11일</p>
       </div>
 
       <Section n="제1조" title="목적">
@@ -114,7 +114,8 @@ export function TermsBody() {
       <Section n="제8조" title="개인정보의 보유 및 파기">
         <p>
           ① 개인정보는 <b className="text-neutral-100">2026학년도 종료 시까지</b> 보유하며,
-          학년이 변경되는 시점에 일괄 파기합니다.
+          학년이 변경되는 시점에 일괄 파기합니다. 다만, 미납된 벌금이 있는 경우에는 납부가 완료될 때까지 보유하며
+          2028년
         </p>
         <p className="mt-2">
           ② 이용자는 언제든지 자신의 개인정보 삭제를 요청할 수 있습니다. 다만 미납 벌금이 있는
@@ -184,7 +185,7 @@ export function TermsBody() {
       </Section>
 
       <p className="border-t border-line pt-4 text-xs text-neutral-500">
-        부칙 · 본 약관은 2026년 9월 7일부터 시행합니다.
+        부칙 · 본 약관은 2026년 9월 11일부터 시행합니다.
       </p>
     </div>
   );

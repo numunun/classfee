@@ -3,4 +3,4 @@
  * 내용을 크게 고치면 이 값을 올린다. 그러면 모든 학생이 다음 접속 때
  * 다시 동의 화면을 보게 된다. (오타 수정 정도로는 올리지 않는다)
  */
-export const TERMS_VERSION = "2026-09-07";
+export const TERMS_VERSION = "2026-09-11";
