@@ -8,7 +8,7 @@ export function TermsBody() {
         <h1 className="text-lg font-bold text-neutral-100">
           이용약관 및 개인정보 처리방침
         </h1>
-        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 9월 11일</p>
+        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 9월 17일</p>
       </div>
 
       <Section n="제1조" title="목적">
@@ -60,7 +60,7 @@ export function TermsBody() {
       </Section>
 
       <Section n="제4조" title="운영자">
-        <p>① 운영자는 성우열, 김예찬, 전은찬, 황성재로 합니다.</p>
+        <p>① 운영자는 성우열, <del>김예찬, 전은찬, 황성재</del>, 이요셉, (대리자)이종혁으로 합니다.</p>
         <p className="mt-2">② 서비스에 관한 문의는 운영자에게 직접 접수합니다.</p>
       </Section>
 
@@ -185,7 +185,7 @@ export function TermsBody() {
       </Section>
 
       <p className="border-t border-line pt-4 text-xs text-neutral-500">
-        부칙 · 본 약관은 2026년 9월 11일부터 시행합니다.
+        부칙 · 본 약관은 2026년 9월 17일부터 시행합니다.
       </p>
     </div>
   );

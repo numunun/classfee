@@ -59,6 +59,10 @@ export function BoardView({
   code: string;
 }) {
   const [snapshots, setSnapshots] = useState<Snapshots>(initialSnapshots);
+  // 전자칠판에서 직접 고칠 대상 (좌석 번호). null 이면 닫힘
+  const [editing, setEditing] = useState<Snap | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState("");
   const [session, setSession] = useState<Session>(initial);
   const [live, setLive] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
@@ -69,6 +73,42 @@ export function BoardView({
   // ---- 데이터 폴링 ----
   // 페이지를 새로고침하지 않고 값만 가져와, 바뀐 경우에만 갱신한다.
   // (router.refresh() 는 화면 전체를 다시 그려서 깜빡임이 생긴다)
+  /** 전자칠판에서 직접 상태를 바꾼다. 로그인 없이 좌석 번호로 처리한다. */
+  async function saveFromBoard(seat: number, status: NightStatus) {
+    setSaving(true);
+    setErr("");
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { persistSession: false } }
+      );
+      const { error } = await supabase.rpc("board_report", {
+        p_grade: grade,
+        p_class: classNo,
+        p_seat: seat,
+        p_session: session,
+        p_status: status,
+        p_reason: null,
+        p_code: code,
+      });
+      if (error) throw new Error(error.message);
+
+      // 저장 직후 화면에 바로 반영 (다음 폴링을 기다리지 않도록)
+      setSnapshots((cur) => ({
+        ...cur,
+        [session]: (cur[session] ?? []).map((r) =>
+          r.seat_no === seat ? { ...r, status, reason: null } : r
+        ),
+      }));
+      setEditing(null);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+  
   useEffect(() => {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -191,6 +231,8 @@ export function BoardView({
       >
         {Array.from({ length: rowCount * COLS }, (_, i) => i + 1).map((n) => {
           const r = bySeat.get(n);
+
+          // 빈 좌석 — 누를 게 없으므로 그냥 표시만 한다
           if (!r) {
             return (
               <div
@@ -201,10 +243,16 @@ export function BoardView({
               </div>
             );
           }
+
+          // 학생이 있는 좌석 — 누르면 상태를 바꿀 수 있다
           return (
-            <div
+            <button
               key={n}
-              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 ${CARD[r.status]}`}
+              onClick={() => {
+                setErr("");
+                setEditing(r);
+              }}
+              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 hover:brightness-125 ${CARD[r.status]}`}
             >
               <p className={`${T.seat} font-medium leading-none opacity-50`}>{n}번</p>
               <p className={`${T.name} mt-[0.4vh] truncate font-bold leading-tight text-white`}>
@@ -218,10 +266,50 @@ export function BoardView({
               {r.reason && (
                 <p className={`${T.reason} mt-[0.3vh] w-full truncate opacity-60`}>{r.reason}</p>
               )}
-            </div>
+            </button>
           );
         })}
       </div>
+            {editing && (
+        <div
+          className="fixed inset-0 z-[100] grid place-items-center p-6"
+          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+          onClick={() => !saving && setEditing(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg rounded-2xl border border-line bg-surface p-6"
+          >
+            <p className="text-center text-sm text-neutral-400">
+              {editing.seat_no}번 · {SESSION_LABEL[session]}
+            </p>
+            <p className="mt-1 text-center text-3xl font-bold">{editing.name}</p>
+
+            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {ORDER.filter((k) => k !== "independent").map((k) => (
+                <button
+                  key={k}
+                  disabled={saving}
+                  onClick={() => saveFromBoard(editing.seat_no, k)}
+                  className={`rounded-xl border py-4 text-lg font-bold disabled:opacity-50 ${CARD[k]}`}
+                >
+                  {NS_ICON[k]} {NS_LABEL[k]}
+                </button>
+              ))}
+            </div>
+
+            {err && <p className="mt-4 text-center text-sm text-red-400">{err}</p>}
+
+            <button
+              disabled={saving}
+              onClick={() => setEditing(null)}
+              className="mt-5 h-12 w-full rounded-xl bg-surface-2 text-sm text-neutral-400"
+            >
+              {saving ? "저장 중…" : "닫기"}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

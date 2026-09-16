@@ -147,6 +147,19 @@ export async function GET(
     "font-size:1.45vh;font-weight:700;}" +
     ".rs{margin-top:0.5vh;font-size:1.2vh;color:rgba(255,255,255,0.45);" +
     "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}" +
+    "a.cell{text-decoration:none;}" +
+    ".errbar{margin-bottom:1vh;padding:1vh;border-radius:1vh;background:rgba(200,70,95,0.2);" +
+    "border:1px solid rgba(200,70,95,0.5);color:#fb8ca0;font-size:1.8vh;text-align:center;}" +
+    ".editwrap{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;" +
+    "-webkit-box-pack:center;justify-content:center;-webkit-box-align:center;align-items:center;" +
+    "height:100%;text-align:center;}" +
+    ".editname{font-size:7vh;font-weight:800;color:#fff;letter-spacing:-0.02em;}" +
+    ".editsub{margin-top:1vh;font-size:2.4vh;color:#9a9aa6;}" +
+    ".picks{margin-top:5vh;}" +
+    ".pick{margin:0 1vh;padding:2.4vh 4vh;font-size:3.4vh;font-weight:800;" +
+    "border-width:2px;border-style:solid;border-radius:1.6vh;cursor:pointer;" +
+    "font-family:inherit;}" +
+    ".back{display:inline-block;margin-top:5vh;font-size:2vh;color:#7a7a86;text-decoration:none;}" +
     ".empty{border:1px dashed rgba(255,255,255,0.06);border-radius:1.4vh;" +
     "display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;" +
     "-webkit-box-align:center;align-items:center;}" +
@@ -207,6 +220,47 @@ export async function GET(
       "</span>";
   }
 
+  // ---- 수정 화면 ----
+  // ?edit=<좌석번호> 가 오면 그 학생의 상태를 고르는 화면을 대신 보여준다.
+  const editSeat = Number(url.searchParams.get("edit"));
+  if (editSeat > 0 && bySeat[editSeat]) {
+    const target = bySeat[editSeat];
+    const backHref = "?" + (explicit ? "s=" + explicit + "&" : "") +
+      (code ? "k=" + encodeURIComponent(code) : "");
+
+    let buttons = "";
+    for (const k of ["present", "academy", "hospital", "special", "other"] as NightStatus[]) {
+      const c = COLOR[k];
+      buttons +=
+        '<form method="post" style="display:inline-block">' +
+        '<input type="hidden" name="seat" value="' + editSeat + '">' +
+        '<input type="hidden" name="session" value="' + session + '">' +
+        '<input type="hidden" name="status" value="' + k + '">' +
+        (code ? '<input type="hidden" name="k" value="' + esc(code) + '">' : "") +
+        '<button class="pick" type="submit" style="background:' + c[3] +
+        ";border-color:" + c[2] + ";color:" + c[1] + '">' + NS_LABEL[k] + "</button>" +
+        "</form>";
+    }
+
+    const editBody =
+      '<div class="editwrap">' +
+      '<div class="editname">' + esc(target.name) + "</div>" +
+      '<div class="editsub">' + editSeat + "번 · " + SESSION_LABEL[session] +
+      " · 현재 " + NS_LABEL[target.status] + "</div>" +
+      '<div class="picks">' + buttons + "</div>" +
+      '<a class="back" href="' + esc(backHref) + '">취소하고 돌아가기</a>' +
+      "</div>";
+
+    // 수정 화면에서는 자동 새로고침을 끈다 (고르는 도중에 화면이 넘어가지 않도록)
+    const editHead = head.replace(
+      '<meta http-equiv="refresh" content="' + REFRESH_SEC + ';url=' + esc(refreshTarget) + '">',
+      ""
+    );
+    return new Response(editHead + editBody + "</div></body></html>", {
+      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+    });
+  }
+
   // 좌석 카드
   let cells = "";
   for (let n = 1; n <= cellCount; n++) {
@@ -216,18 +270,27 @@ export async function GET(
       continue;
     }
     const c = COLOR[r.status] || COLOR.other;
+    // 카드를 눌러 상태를 고칠 수 있게 링크로 만든다 (자바스크립트 없이 페이지 이동)
+    const editHref =
+      "?edit=" + n + "&s=" + session + (code ? "&k=" + encodeURIComponent(code) : "");
     cells +=
-      '<div class="cell" style="background:' + c[0] + ";border-color:" + c[2] +
-      '">' +
+      '<a class="cell" href="' + esc(editHref) + '" style="background:' + c[0] +
+      ";border-color:" + c[2] + '">' +
       '<div class="no">' + n + "번</div>" +
       '<div class="nm">' + esc(r.name) + "</div>" +
       '<div><span class="st" style="background:' + c[3] + ";color:" + c[1] + '">' +
       NS_LABEL[r.status] + "</span></div>" +
       (r.reason ? '<div class="rs">' + esc(r.reason) + "</div>" : "") +
-      "</div>";
+      "</a>";
   }
 
+  const errMsg = url.searchParams.get("err");
+  const errBar = errMsg
+    ? '<div class="errbar">' + esc(errMsg) + "</div>"
+    : "";
+
   const body =
+    errBar +
     '<div class="top">' +
     "<div>" +
     '<div class="ttl">' + esc(label) + " CIP 현황</div>" +
@@ -244,4 +307,43 @@ export async function GET(
       "cache-control": "no-store",
     },
   });
+}
+
+/**
+ * 전자칠판에서 상태를 고르면 여기로 폼이 전송된다.
+ * 자바스크립트를 쓸 수 없는 환경이라 폼 전송 → 저장 → 현황판으로 리다이렉트한다.
+ */
+export async function POST(
+  request: Request,
+  { params }: { params: { grade: string; classNo: string } }
+) {
+  const form = await request.formData();
+  const seat = Number(form.get("seat"));
+  const session = Number(form.get("session"));
+  const status = String(form.get("status") || "");
+  const code = String(form.get("k") || "");
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } }
+  );
+
+  const { error } = await supabase.rpc("board_report", {
+    p_grade: Number(params.grade),
+    p_class: Number(params.classNo),
+    p_seat: seat,
+    p_session: session,
+    p_status: status,
+    p_reason: null,
+    p_code: code,
+  });
+
+  const base = new URL(request.url);
+  base.search =
+    "?s=" + session + (code ? "&k=" + encodeURIComponent(code) : "") +
+    (error ? "&err=" + encodeURIComponent(error.message) : "");
+
+  // 303: POST 결과를 GET 으로 돌려보내 새로고침 시 재전송되지 않게 한다
+  return Response.redirect(base.toString(), 303);
 }
