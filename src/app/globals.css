@@ -42,3 +42,44 @@ input[type="number"] { -moz-appearance: textfield; }
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ---- 인쇄(PDF 저장)용 ---- */
+@media print {
+  /* 화면 전용 요소는 인쇄에서 제외 */
+  .no-print,
+  header nav,
+  footer {
+    display: none !important;
+  }
+
+  /* 테마 배경·유리 효과는 인쇄에서 잉크만 먹으므로 흰 종이로 */
+  :root {
+    --c-ink: 255 255 255;
+    --c-surface: 255 255 255;
+    --c-surface-2: 255 255 255;
+    --c-line: 200 200 200;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .report,
+  .report * {
+    color: #000 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  /* 표가 페이지 경계에서 잘리지 않게 */
+  tr {
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  @page {
+    margin: 15mm;
+  }
+}

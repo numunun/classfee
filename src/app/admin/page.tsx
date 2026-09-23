@@ -51,6 +51,7 @@ export default async function AdminDashboard() {
         <Action href="/admin/students">학생 관리</Action>
         <Action href="/admin/settings">설정</Action>
         <Action href="/admin/debug">진단</Action>
+        <Action href="/admin/report">회계 보고서</Action>
       </nav>
 
       <div className="mt-5">
