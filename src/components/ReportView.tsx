@@ -100,7 +100,7 @@ export function ReportView({
       </div>
 
       {/* ---- 보고서 본문 ---- */}
-      <div className="report">
+      <div className="report rounded-2xl bg-surface p-6">
         <header className="mb-6 border-b border-line pb-4">
           <h1 className="text-xl font-bold">{classLabel} 벌금 회계 보고서</h1>
           <p className="mt-1 text-sm text-neutral-500">
@@ -197,7 +197,7 @@ export function ReportView({
 
 function Box({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-line p-3">
+    <div className="rounded-xl border border-line bg-surface-2 p-3">
       <p className="text-xs text-neutral-500">{label}</p>
       <p className="mt-1 text-lg font-bold tabular-nums">{value}</p>
     </div>

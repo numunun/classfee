@@ -52,6 +52,12 @@ input[type="number"] { -moz-appearance: textfield; }
     display: none !important;
   }
 
+  /* 테마 배경(워터마크·그라디언트)은 인쇄에서 제외 */
+  .tm-watermark,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+
   /* 테마 배경·유리 효과는 인쇄에서 잉크만 먹으므로 흰 종이로 */
   :root {
     --c-ink: 255 255 255;
@@ -69,6 +75,7 @@ input[type="number"] { -moz-appearance: textfield; }
     background: transparent !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
+    border-color: #ccc !important;
   }
 
   /* 표가 페이지 경계에서 잘리지 않게 */
