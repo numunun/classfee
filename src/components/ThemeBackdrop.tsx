@@ -28,19 +28,19 @@ export function ThemeBackdrop({ theme }: { theme: Theme }) {
       />
 
       {/* 로고 워터마크 */}
-      {theme.logo && (
+      {(theme.backdropImage ?? theme.logo) && (
         <div
           className="absolute inset-0 flex items-center justify-center"
           style={{ paddingTop: `calc(${shift} * 2)` }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={theme.logo}
+            src={theme.backdropImage ?? theme.logo}
             alt=""
             className="tm-watermark select-none"
             style={{
               width: size,
-              opacity: light ? 0.16 : 0.1,
+              opacity: light ? 0.07 : 0.05,
               mixBlendMode: light ? "multiply" : "normal",
             }}
           />

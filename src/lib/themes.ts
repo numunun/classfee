@@ -43,6 +43,8 @@ export type Theme = {
   ramp: string[];
   /** 페이지 전체 색. 생략하면 기본값 유지 */
   palette?: Palette;
+  /** 배경 워터마크용 이미지. 없으면 logo 를 쓴다. */
+  backdropImage?: string;
 };
 
 export const THEMES: Record<number, Theme> = {
@@ -64,6 +66,27 @@ export const THEMES: Record<number, Theme> = {
       surface: "#FFFBF7",  // 카드는 배경보다 밝게 띄운다
       surface2: "#F6E5D8",
       line: "#E3C4AC",
+    },
+  },
+  // 20904
+  20904: {
+    team: "노사모",
+    tagline: "노사모",
+    accent: "#F5A623",
+    deep: "#2B2118",
+    emoji: "🌻",
+    motto: "OWL ROCK · GIMHAE · 2009 · 0523",
+    logo: "/theme/banner-20904.png",
+    backdropImage: "/theme/backdrop-20904.png",
+    ramp: ["#3A2A14", "#8A6A20", "#F5A623", "#FFE0A0", "#FFFFFF", "#F5A623", "#5A4318"],
+    mode: "dark",
+    watermarkSize: "min(80vw, 580px)",
+    watermarkShift: "-1vh",
+    palette: {
+      ink: "#0B0A08",
+      surface: "#17150F",
+      surface2: "#201D15",
+      line: "#332E22",
     },
   },
   // 20911 — Gen.G
