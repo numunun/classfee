@@ -176,12 +176,14 @@ export function BoardView({
   }, [ready, live]);
 
   const rows = snapshots[session] ?? [];
+  // 비활성 학생은 CIP 대상이 아니므로 인원 집계에서 뺀다
+  const active = rows.filter((r) => r.status !== "inactive");
   const bySeat = new Map(rows.map((r) => [r.seat_no, r]));
   const maxSeat = Math.max(35, ...rows.map((r) => r.seat_no));
   const rowCount = Math.ceil(maxSeat / COLS);
 
   const counts = ORDER.reduce(
-    (acc, k) => ({ ...acc, [k]: rows.filter((r) => r.status === k).length }),
+    (acc, k) => ({ ...acc, [k]: active.filter((r) => r.status === k).length }),
     {} as Record<NightStatus, number>
   );
 

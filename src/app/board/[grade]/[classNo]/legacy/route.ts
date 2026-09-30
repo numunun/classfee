@@ -208,8 +208,12 @@ export async function GET(
   }
 
   // 상태별 인원 칩
+  // 상태별 인원 칩 (비활성 학생 제외)
   const counts: Record<string, number> = {};
-  for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
+  for (const r of rows) {
+    if (r.status === "inactive") continue;
+    counts[r.status] = (counts[r.status] || 0) + 1;
+  }
   const order: NightStatus[] = ["present", "independent", "academy", "hospital", "special", "other"];
   let chips = "";
   for (const k of order) {
