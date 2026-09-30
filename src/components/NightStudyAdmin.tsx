@@ -7,6 +7,7 @@ import {
   clearNightStatus,
   saveAcademyDays,
   setIndependent,
+  setCipInactive,
 } from "@/app/admin/night-study/actions";
 import { useToast } from "@/components/Toast";
 import {
@@ -22,12 +23,14 @@ import {
   type ReasonType,
   type Session,
 } from "@/lib/night-study";
+import { matches } from "@/lib/hangul";
 
 export type Row = {
   id: string;
   name: string;
   student_number: number | null;
   isIndependent: boolean;
+  isInactive: boolean;
   states: Record<number, { status: NightStatus; reason: string | null; selfReported: boolean }>;
   /** 학원 가는 요일 (1=월 … 4=목). 차수는 2·3차로 고정 */
   academyDays: number[];
@@ -43,6 +46,10 @@ const CHOICES: NightStatus[] = ["present", ...REASON_TYPES];
  */
 function resolve(row: Row, session: Session, weekday: number | null): NightStatus {
   const rec = row.states[session];
+  // 관리자가 직접 지정한 기록이 최우선
+  if (rec && !rec.selfReported) return rec.status;
+  // 그다음 비활성화
+  if (row.isInactive) return "inactive";
   if (rec) return rec.status;
   const isAcademy =
     weekday !== null &&
@@ -124,7 +131,7 @@ function TodayList({
 
   const q = query.trim();
   const shown = q
-    ? rows.filter((r) => r.name.includes(q) || String(r.student_number ?? "").includes(q))
+    ? rows.filter((r) => matches(r.name, q) || String(r.student_number ?? "").includes(q))
     : rows;
 
   const attending = rows.filter((r) => resolve(r, session, weekday) === "present").length;
@@ -358,17 +365,40 @@ function ScheduleList({ rows }: { rows: Row[] }) {
                   <span className="mr-2 text-neutral-500">{seatNo(r.student_number) ?? "-"}</span>
                   {r.name}
                 </p>
-                <button
-                  disabled={pending}
-                  onClick={() => toggleIndependent(r.id, !r.isIndependent)}
-                  className={`shrink-0 rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
-                    r.isIndependent
-                      ? NS_STYLE.independent
-                      : "border-line bg-surface-2 text-neutral-500"
-                  }`}
-                >
-                  자주반
-                </button>
+                <div className="flex shrink-0 gap-1.5">
+                  <button
+                    disabled={pending}
+                    onClick={() => toggleIndependent(r.id, !r.isIndependent)}
+                    className={`rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
+                      r.isIndependent
+                        ? NS_STYLE.independent
+                        : "border-line bg-surface-2 text-neutral-500"
+                    }`}
+                  >
+                    자주반
+                  </button>
+                  <button
+                    disabled={pending}
+                    onClick={() =>
+                      start(async () => {
+                        try {
+                          await setCipInactive(r.id, !r.isInactive);
+                          toast(r.isInactive ? "CIP 대상으로 되돌렸어요." : "CIP 비활성화했어요.");
+                          router.refresh();
+                        } catch (e) {
+                          toast((e as Error).message, "error");
+                        }
+                      })
+                    }
+                    className={`rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
+                      r.isInactive
+                        ? NS_STYLE.inactive
+                        : "border-line bg-surface-2 text-neutral-500"
+                    }`}
+                  >
+                    비활성
+                  </button>
+                </div>
               </div>
               <div className="mt-2 flex items-center gap-1.5">
                 {DAYS.map((label, i) => {

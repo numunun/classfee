@@ -40,6 +40,7 @@ const COLOR: Record<NightStatus, [string, string, string, string]> = {
   hospital:    ["rgba(66,20,28,0.55)",  "#fb8ca0", "rgba(200,70,95,0.45)",  "rgba(200,70,95,0.18)"],
   special:     ["rgba(44,28,72,0.55)",  "#c4a2fb", "rgba(140,95,220,0.45)", "rgba(140,95,220,0.18)"],
   other:       ["rgba(38,38,44,0.6)",   "#cfcfd6", "rgba(120,120,132,0.4)", "rgba(120,120,132,0.16)"],
+  inactive:    ["rgba(24,24,28,0.5)",  "#6a6a72", "rgba(90,90,100,0.3)",  "rgba(90,90,100,0.12)"],
 };
 
 function esc(s: string): string {

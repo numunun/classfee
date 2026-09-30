@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { addStudent, setRole } from "@/app/admin/actions";
 import { useToast } from "@/components/Toast";
 import type { Student } from "@/lib/types";
+import { matches } from "@/lib/hangul";
 import Link from "next/link";
 
 export function StudentManager({ students }: { students: Student[] }) {
@@ -18,9 +19,9 @@ export function StudentManager({ students }: { students: Student[] }) {
   const shown = q
     ? students.filter(
         (s) =>
-          s.name.includes(q) ||
+          matches(s.name, q) ||
           String(s.student_number ?? "").includes(q) ||
-          s.google_email.toLowerCase().includes(q.toLowerCase()),
+          s.google_email.toLowerCase().includes(q.toLowerCase())
       )
     : students;
 
@@ -79,7 +80,7 @@ export function StudentManager({ students }: { students: Student[] }) {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="이름 · 학번 · 이메일로 찾기"
+            placeholder="이름 · 초성 · 학번 · 이메일로 찾기"
             className="flex-1"
           />
           <span className="shrink-0 text-xs text-neutral-500">

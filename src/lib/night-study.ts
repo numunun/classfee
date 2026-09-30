@@ -4,7 +4,8 @@ export type NightStatus =
   | "academy"      // 학원
   | "hospital"     // 병원
   | "special"      // 특별실
-  | "other";       // 기타
+  | "other"        // 기타
+  | "inactive";    // CIP 자체를 하지 않는 학생
 
 /** 학생이 직접 고를 수 있는 사유 (참석 제외) */
 export const REASON_TYPES = ["academy", "hospital", "special", "other"] as const;
@@ -17,6 +18,7 @@ export const NS_LABEL: Record<NightStatus, string> = {
   hospital: "병원",
   special: "특별실",
   other: "기타",
+  inactive: "비활성화",
 };
 
 export const NS_ICON: Record<NightStatus, string> = {
@@ -26,6 +28,7 @@ export const NS_ICON: Record<NightStatus, string> = {
   hospital: "🏥",
   special: "🔬",
   other: "•",
+  inactive: "-",
 };
 
 export const NS_STYLE: Record<NightStatus, string> = {
@@ -35,6 +38,7 @@ export const NS_STYLE: Record<NightStatus, string> = {
   hospital: "bg-rose-950 text-rose-300 border-rose-800/70",
   special: "bg-violet-950 text-violet-300 border-violet-800/70",
   other: "bg-neutral-800 text-neutral-300 border-neutral-600/70",
+  inactive: "bg-neutral-900 text-neutral-600 border-neutral-800",
 };
 
 export const REASON_PLACEHOLDER: Record<ReasonType, string> = {

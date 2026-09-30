@@ -196,7 +196,14 @@ export async function StudentView({
       ))}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-start">
-        {isCipDay(wd) && !readOnly && isReportOpen() ? (
+        {me.cip_inactive ? (
+          <section className="rounded-2xl bg-surface p-5 opacity-50">
+            <h2 className="font-medium">🌙 오늘 CIP</h2>
+            <p className="mt-2 text-sm text-neutral-500">
+              CIP 참여 대상이 아니에요.
+            </p>
+          </section>
+        ) : isCipDay(wd) && !readOnly && isReportOpen() ? (
           <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />
         ) : readOnly || (isCipDay(wd) && !isReportOpen()) ? (
           <section className="rounded-2xl bg-surface p-5">

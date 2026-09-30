@@ -23,7 +23,7 @@ export const getCurrentStudent = cache(async (): Promise<Student | null> => {
   const supabase = createClient();
   const { data } = await supabase
     .from("students")
-    .select("id, student_number, name, google_email, role, auth_user_id, is_independent, terms_agreed_at, terms_version")
+    .select("id, student_number, name, google_email, role, auth_user_id, is_independent, terms_agreed_at, terms_version, cip_inactive")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 

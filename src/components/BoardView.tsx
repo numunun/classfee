@@ -41,6 +41,7 @@ const CARD: Record<NightStatus, string> = {
   hospital: "border-rose-800/60 bg-rose-950/40 text-rose-200",
   special: "border-violet-800/60 bg-violet-950/40 text-violet-200",
   other: "border-neutral-600/60 bg-neutral-800/60 text-neutral-200",
+  inactive: "border-neutral-800/60 bg-neutral-900/40 text-neutral-600",
 };
 
 const ORDER: NightStatus[] = ["present", "independent", "academy", "hospital", "special", "other"];

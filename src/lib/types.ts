@@ -28,6 +28,7 @@ export interface Student {
   auth_user_id: string | null;
   terms_agreed_at?: string | null;
   terms_version?: string | null;
+  cip_inactive?: boolean;
 }
 
 export interface Settings {

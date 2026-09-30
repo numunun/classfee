@@ -104,3 +104,15 @@ export async function setIndependent(studentId: string, value: boolean) {
   if (error) throw new Error(error.message);
   touch();
 }
+
+// CIP 자체를 하지 않는 학생 토글
+export async function setCipInactive(studentId: string, value: boolean) {
+  await assertAdmin();
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("students")
+    .update({ cip_inactive: value })
+    .eq("id", studentId);
+  if (error) throw new Error(error.message);
+  touch();
+}

@@ -11,6 +11,7 @@ type StudentRow = {
   name: string;
   student_number: number | null;
   is_independent: boolean;
+  cip_inactive: boolean;
 };
 
 type RecordRow = {
@@ -34,7 +35,7 @@ export default async function NightStudyPage() {
   const [{ data: studentsData }, { data: recordsData }, { data: acaData }] = await Promise.all([
     supabase
       .from("students")
-      .select("id, name, student_number, is_independent")
+      .select("id, name, student_number, is_independent, cip_inactive")
       .order("student_number"),
     supabase
       .from("night_study_records")
@@ -74,6 +75,7 @@ export default async function NightStudyPage() {
     isIndependent: !!s.is_independent,
     states: recMap.get(s.id) ?? {},
     academyDays: (acaMap.get(s.id) ?? []).sort(),
+    isInactive: !!s.cip_inactive,
   }));
 
   return (
