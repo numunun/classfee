@@ -45,6 +45,10 @@ export type Theme = {
   palette?: Palette;
   /** 배경 워터마크용 이미지. 없으면 logo 를 쓴다. */
   backdropImage?: string;
+  /** 배경 이미지 투명도. 인물 사진은 로고보다 낮게 (기본 0.05) */
+  backdropOpacity?: number;
+  /** 배경 이미지 위치. 인물은 한쪽으로 빼는 게 낫다 (기본 center) */
+  backdropPosition?: "center" | "right" | "left";
 };
 
 export const THEMES: Record<number, Theme> = {
@@ -130,6 +134,29 @@ export const THEMES: Record<number, Theme> = {
       line: "#26332C",
     },
   },
+  // 20927 — UFC
+  20925: {
+    team: "PADDY PIMBLETT",
+    tagline: "UFC",
+    accent: "#D20A0A",
+    deep: "#0A0A0A",
+    emoji: "🥊",
+    motto: "TOPURIA SAUSAGE · LIGHTWEIGHT · UFC · 28-6",
+    logo: "/theme/ufc.svg",
+    backdropImage: "/theme/paddy.png",
+    backdropOpacity: 0.15,
+    backdropPosition: "right",
+    ramp: ["#2A0505", "#8A0A0A", "#D20A0A", "#FF5252", "#FFFFFF", "#D20A0A", "#4A0808"],
+    mode: "dark",
+    watermarkSize: "min(80vw, 580px)",
+    watermarkShift: "-1vh",
+    palette: {
+      ink: "#070707",
+      surface: "#141414",
+      surface2: "#1C1C1C",
+      line: "#2E2E2E",
+    },
+  },
   // 20926 — T1
   20926: {
     team: "T1",
@@ -151,6 +178,7 @@ export const THEMES: Record<number, Theme> = {
     },
   },
 };
+
 
 export function getTheme(studentNumber: number | null | undefined): Theme | null {
   if (studentNumber == null) return null;
@@ -212,7 +240,7 @@ function motionCss(theme: Theme): string {
   from{filter:drop-shadow(0 0 2px rgba(255,255,255,.7)) drop-shadow(0 0 6px ${theme.accent}66)}
   to{filter:drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 12px ${theme.accent}aa)}
 }
-@keyframes tm-breathe{from{opacity:.13;transform:scale(.98)}to{opacity:.2;transform:scale(1.02)}}
+@keyframes tm-breathe{from{opacity:.4;transform:scale(.98)}to{opacity:.7;transform:scale(1.02)}}
 
 .tm-name{
   display:inline-block;

@@ -1,21 +1,30 @@
 import type { Theme } from "@/lib/themes";
 
 /**
- * 페이지 전체에 깔리는 팀 배경.
+ * 페이지 전체에 깔리는 배경.
  * 화면에 고정(fixed)되어 스크롤해도 따라오고, 클릭은 통과시킨다.
- *
- * 위치잡기는 바깥 div, 애니메이션은 안쪽 img 가 맡는다.
- * 한 요소에서 둘 다 하면 애니메이션의 transform 이 정렬을 덮어써서 로고가 밀려난다.
  */
 export function ThemeBackdrop({ theme }: { theme: Theme }) {
   const light = theme.mode === "light";
   const size = theme.watermarkSize ?? "min(88vw, 620px)";
-  // 화면 정중앙에 두면 상단 헤더·배너 때문에 시각적으로 높아 보인다. 조금 내려서 균형을 맞춘다.
   const shift = theme.watermarkShift ?? "10vh";
 
+  // 배경 전용 이미지가 있으면 그것을, 없으면 로고를 쓴다
+  const image = theme.backdropImage ?? theme.logo;
+
+  // 인물 사진은 로고보다 존재감이 커서 기본값보다 훨씬 옅게 깔아야 한다
+  const opacity = theme.backdropOpacity ?? (light ? 0.07 : 0.05);
+
+  const align =
+    theme.backdropPosition === "right"
+      ? "justify-end pr-[2vw]"
+      : theme.backdropPosition === "left"
+      ? "justify-start pl-[2vw]"
+      : "justify-center";
+
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* 팀 색 번짐 */}
+    <div aria-hidden className="no-print pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* 테마 색 번짐 */}
       <div
         className="absolute inset-0"
         style={{
@@ -27,27 +36,28 @@ export function ThemeBackdrop({ theme }: { theme: Theme }) {
         }}
       />
 
-      {/* 로고 워터마크 */}
-      {(theme.backdropImage ?? theme.logo) && (
+      {/* 배경 이미지 */}
+      {image && (
         <div
-          className="absolute inset-0 flex items-center justify-center"
+          className={`absolute inset-0 flex items-center ${align}`}
           style={{ paddingTop: `calc(${shift} * 2)` }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={theme.backdropImage ?? theme.logo}
+            src={image}
             alt=""
-            className="tm-watermark select-none"
+            // 로고는 은은하게 숨쉬지만, 인물 사진이 커졌다 작아지면 어색하다
+            className={`${theme.backdropImage ? "" : "tm-watermark"} select-none`}
             style={{
               width: size,
-              opacity: light ? 0.07 : 0.05,
+              opacity,
               mixBlendMode: light ? "multiply" : "normal",
             }}
           />
         </div>
       )}
 
-      {/* 어두운 테마에서만 위아래를 눌러 글자 대비를 확보한다. */}
+      {/* 어두운 테마에서만 위아래를 눌러 글자 대비를 확보한다 */}
       {!light && (
         <div
           className="absolute inset-0"

@@ -67,7 +67,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         .from("payment_requests")
         .select("id, total_amount, depositor_name, status, reviewed_at, reject_reason")
         .eq("student_id", params.id)
-        .order("created_at", { ascending: false })
+      .order("requested_at", { ascending: false })
         .limit(20),
     ]);
 
