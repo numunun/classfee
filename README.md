@@ -288,6 +288,6 @@ supabase/migrations/ # numbered, run in order
 
 <div align="center">
 
-Built by **[@numunun](https://github.com/numunun)** · Daejeon Daeshin High School
+Built by **[@numunun](https://github.com/numunun)**, **[@earthjack](https://github.com/earthjack)** · Daejeon Daeshin High School
 
 </div>
