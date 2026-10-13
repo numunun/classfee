@@ -8,7 +8,7 @@ export function TermsBody() {
         <h1 className="text-lg font-bold text-neutral-100">
           이용약관 및 개인정보 처리방침
         </h1>
-        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 9월 17일</p>
+        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 10월 13일</p>
       </div>
 
       <Section n="제1조" title="목적">
@@ -175,7 +175,31 @@ export function TermsBody() {
         </p>
       </Section>
 
-      <Section n="제13조" title="약관의 변경">
+            <Section n="제13조" title="지식재산권">
+        <p>
+          ① 서비스의 소스코드는 MIT 라이선스로 공개되어 있으며, 해당 라이선스가 정하는 범위에서
+          자유롭게 이용·수정·배포할 수 있습니다.
+        </p>
+        <p className="mt-2">
+          ② 소스코드를 제외한 것, 즉 서비스의 이름·디자인·화면 구성과 서비스에 축적된 데이터는
+          운영자에게 권리가 있으며, 운영자의 사전 동의 없이 복제·배포하거나 영리적으로 이용할 수
+          없습니다.
+        </p>
+        <p className="mt-2">
+          ③ 이용자가 서비스에 입력한 내용의 권리는 해당 이용자에게 있습니다. 운영자는 서비스를
+          운영하고 학급 회계를 관리하는 데 필요한 범위에서만 이를 이용합니다.
+        </p>
+        <p className="mt-2">
+          ④ 서비스에 사용된 학교 및 제3자의 상표·로고·이미지는 각 권리자에게 귀속되며, 공개
+          대상에 포함되지 않습니다.
+        </p>
+        <p className="mt-2">
+          ⑤ 서비스를 사칭하거나 학교의 공식 시스템인 것처럼 오인하게 하는 방식의 이용을
+          금지합니다.
+        </p>
+      </Section>
+
+      <Section n="제14조" title="약관의 변경">
         <p>① 운영자는 필요한 경우 본 약관을 변경할 수 있습니다.</p>
         <p className="mt-2">② 약관을 변경하는 경우 서비스 내 공지를 통하여 알립니다.</p>
         <p className="mt-2">
@@ -185,7 +209,7 @@ export function TermsBody() {
       </Section>
 
       <p className="border-t border-line pt-4 text-xs text-neutral-500">
-        부칙 · 본 약관은 2026년 9월 17일부터 시행합니다.
+        부칙 · 본 약관은 2026년 10월 13일부터 시행합니다.
       </p>
     </div>
   );
