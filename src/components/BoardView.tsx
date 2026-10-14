@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { Modal } from "@/components/Modal";
 import {
   NS_LABEL,
   NS_ICON,
@@ -9,6 +10,7 @@ import {
   SESSION_LABEL,
   SESSION_TIME,
   liveSessionAt,
+  seoulMinutesOfDay,
   type NightStatus,
   type Session,
 } from "@/lib/night-study";
@@ -71,9 +73,6 @@ export function BoardView({
   // 마지막으로 받은 데이터의 지문. 달라졌을 때만 화면을 갈아끼운다.
   const fingerprint = useRef(JSON.stringify(initialSnapshots));
 
-  // ---- 데이터 폴링 ----
-  // 페이지를 새로고침하지 않고 값만 가져와, 바뀐 경우에만 갱신한다.
-  // (router.refresh() 는 화면 전체를 다시 그려서 깜빡임이 생긴다)
   /** 전자칠판에서 직접 상태를 바꾼다. 로그인 없이 좌석 번호로 처리한다. */
   async function saveFromBoard(seat: number, status: NightStatus) {
     setSaving(true);
@@ -96,6 +95,7 @@ export function BoardView({
       if (error) throw new Error(error.message);
 
       // 저장 직후 화면에 바로 반영 (다음 폴링을 기다리지 않도록)
+      // 비활성 학생은 DB 에서 막히므로 여기까지 오지 않는다.
       setSnapshots((cur) => ({
         ...cur,
         [session]: (cur[session] ?? []).map((r) =>
@@ -110,6 +110,9 @@ export function BoardView({
     }
   }
   
+  // ---- 데이터 폴링 ----
+  // 페이지를 새로고침하지 않고 값만 가져와, 바뀐 경우에만 갱신한다.
+  // (router.refresh() 는 화면 전체를 다시 그려서 깜빡임이 생긴다)
   useEffect(() => {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -158,9 +161,10 @@ export function BoardView({
 
   // ---- 차수 자동 전환 ----
   useEffect(() => {
+    // 기기 시계의 시간대가 아니라 한국 시각으로 계산한다.
+    // (getHours() 는 전자칠판 기기 설정에 따라 9시간 어긋날 수 있다)
     const compute = () => {
-      const d = new Date();
-      setLive(liveSessionAt(d.getHours() * 60 + d.getMinutes()));
+      setLive(liveSessionAt(seoulMinutesOfDay()));
       setReady(true);
     };
     compute();
@@ -258,7 +262,11 @@ export function BoardView({
               className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 hover:brightness-125 ${CARD[r.status]}`}
             >
               <p className={`${T.seat} font-medium leading-none opacity-50`}>{n}번</p>
-              <p className={`${T.name} mt-[0.4vh] truncate font-bold leading-tight text-white`}>
+              <p
+                className={`${T.name} mt-[0.4vh] truncate font-bold leading-tight ${
+                  r.status === "inactive" ? "text-neutral-500" : "text-white"
+                }`}
+              >
                 {r.name}
               </p>
               <span
@@ -273,45 +281,61 @@ export function BoardView({
           );
         })}
       </div>
-            {editing && (
-        <div
-          className="fixed inset-0 z-[100] grid place-items-center p-6"
-          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
-          onClick={() => !saving && setEditing(null)}
-        >
+      {editing && (
+        <Modal onClose={() => !saving && setEditing(null)}>
+          {/* 떠 있는 요소라 색을 인라인으로 고정한다 */}
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg rounded-2xl border border-line bg-surface p-6"
+            className="w-full rounded-2xl border p-6 sm:w-[32rem]"
+            style={{ background: "#161618", borderColor: "#2a2a2e", color: "#f5f5f5" }}
           >
-            <p className="text-center text-sm text-neutral-400">
+            <p className="text-center text-sm" style={{ color: "#a3a3a3" }}>
               {editing.seat_no}번 · {SESSION_LABEL[session]}
             </p>
             <p className="mt-1 text-center text-3xl font-bold">{editing.name}</p>
 
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {ORDER.filter((k) => k !== "independent").map((k) => (
-                <button
-                  key={k}
-                  disabled={saving}
-                  onClick={() => saveFromBoard(editing.seat_no, k)}
-                  className={`rounded-xl border py-4 text-lg font-bold disabled:opacity-50 ${CARD[k]}`}
-                >
-                  {NS_ICON[k]} {NS_LABEL[k]}
-                </button>
-              ))}
-            </div>
+            {editing.status === "inactive" ? (
+              // 비활성 학생은 고를 게 없다. DB(board_report)에서도 막혀 있다.
+              <p
+                className="mt-6 rounded-xl border px-4 py-5 text-center text-base"
+                style={{ borderColor: "#2a2a2e", color: "#a3a3a3" }}
+              >
+                CIP 참여 대상이 아닌 학생이에요.
+                <br />
+                <span className="text-sm" style={{ color: "#737373" }}>
+                  변경이 필요하면 관리자에게 말해주세요.
+                </span>
+              </p>
+            ) : (
+              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {ORDER.filter((k) => k !== "independent").map((k) => (
+                  <button
+                    key={k}
+                    disabled={saving}
+                    onClick={() => saveFromBoard(editing.seat_no, k)}
+                    className={`rounded-xl border py-4 text-lg font-bold disabled:opacity-50 ${CARD[k]}`}
+                  >
+                    {NS_ICON[k]} {NS_LABEL[k]}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {err && <p className="mt-4 text-center text-sm text-red-400">{err}</p>}
+            {err && (
+              <p className="mt-4 text-center text-sm" style={{ color: "#f87171" }}>
+                {err}
+              </p>
+            )}
 
             <button
               disabled={saving}
               onClick={() => setEditing(null)}
-              className="mt-5 h-12 w-full rounded-xl bg-surface-2 text-sm text-neutral-400"
+              className="mt-5 h-12 w-full rounded-xl text-sm"
+              style={{ background: "#1f1f23", color: "#a3a3a3" }}
             >
               {saving ? "저장 중…" : "닫기"}
             </button>
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

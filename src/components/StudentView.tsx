@@ -23,6 +23,7 @@ import {
   NS_STYLE,
   isCipDay,
   isReportOpen,
+  resolveNight,
   type NightStatus,
   type Session,
 } from "@/lib/night-study";
@@ -68,7 +69,8 @@ export async function StudentView({
     reviewed_at: string | null;
   }[];
 
-  // 오늘 CIP 상태 (1/2/3차). 기록이 없으면 학원 스케줄 > 자주반 > 참석 순으로 결정한다.
+  // 오늘 CIP 상태 (1/2/3차). 우선순위는 현황판과 같다.
+  // 관리자 기록 > 비활성화 > 본인 신고 > 학원 > 자주반 > 참석
   const [{ data: nsData }, { data: acaData }] = await Promise.all([
     supabase
       .from("night_study_records")
@@ -96,21 +98,27 @@ export async function StudentView({
     ((acaData ?? []) as { session: number; note: string | null }[]).map((a) => [a.session, a.note])
   );
 
+  const inactive = !!me.cip_inactive;
   const cipStates: SessionState[] = SESSIONS.map((n) => {
     const rec = recs.get(n);
-    if (rec) {
-      return { session: n as Session, status: rec.status, reason: rec.reason, locked: !rec.self_reported };
-    }
-    if (acas.has(n)) {
-      return { session: n as Session, status: "academy", reason: acas.get(n) ?? null, locked: false };
-    }
+    const r = resolveNight({
+      record: rec
+        ? { status: rec.status, reason: rec.reason, selfReported: rec.self_reported }
+        : null,
+      inactive,
+      academy: acas.has(n),
+      academyNote: acas.get(n) ?? null,
+      independent: !!me.is_independent,
+    });
     return {
       session: n as Session,
-      status: me.is_independent ? "independent" : "present",
-      reason: null,
-      locked: false,
+      status: r.status,
+      reason: r.reason,
+      locked: r.source === "admin",
     };
   });
+  // 비활성 학생이라도 관리자가 따로 지정한 차수가 있으면 보여준다
+  const inactiveOverrides = cipStates.filter((st) => st.status !== "inactive");
 
   if (!s) {
     return (
@@ -196,12 +204,35 @@ export async function StudentView({
       ))}
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:items-start">
-        {me.cip_inactive ? (
-          <section className="rounded-2xl bg-surface p-5 opacity-50">
-            <h2 className="font-medium">🌙 오늘 CIP</h2>
+        {inactive ? (
+          // 비활성 학생은 요일·시각과 상관없이 항상 이 카드를 보여준다.
+          // (운영일이 아니거나 21시가 지나도 「비활성」임이 드러나야 한다)
+          <section className="rounded-2xl bg-surface p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium">🌙 오늘 CIP</h2>
+              <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.inactive}`}>
+                {NS_LABEL.inactive}
+              </span>
+            </div>
             <p className="mt-2 text-sm text-neutral-500">
-              CIP 참여 대상이 아니에요.
+              CIP 참여 대상이 아니에요. 따로 신고하지 않아도 돼요.
             </p>
+            {isCipDay(wd) && inactiveOverrides.length > 0 && (
+              <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
+                {inactiveOverrides.map((st) => (
+                  <li key={st.session} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-neutral-400">{SESSION_LABEL[st.session]}</span>
+                    <span className="truncate text-xs text-neutral-500">{st.reason ?? ""}</span>
+                    <span
+                      className={`shrink-0 rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[st.status]}`}
+                    >
+                      {NS_LABEL[st.status]}
+                    </span>
+                  </li>
+                ))}
+                <li className="pt-1 text-xs text-neutral-500">관리자가 따로 지정한 기록이에요.</li>
+              </ul>
+            )}
           </section>
         ) : isCipDay(wd) && !readOnly && isReportOpen() ? (
           <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />

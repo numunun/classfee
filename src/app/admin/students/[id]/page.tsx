@@ -8,10 +8,11 @@ import {
   NS_STYLE,
   SESSIONS,
   SESSION_LABEL,
-  ACADEMY_SESSIONS,
   todayISO,
   weekdayIndex,
   seatNo,
+  resolveNight,
+  isAcademySession,
   type NightStatus,
 } from "@/lib/night-study";
 
@@ -44,7 +45,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   const { data: student } = await supabase
     .from("students")
-    .select("id, name, student_number, google_email, role, is_independent, auth_user_id")
+    .select("id, name, student_number, google_email, role, is_independent, auth_user_id, cip_inactive")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -100,17 +101,17 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     reject_reason: string | null;
   }[];
 
-  function cipStatus(session: number): NightStatus {
+  // 현황판(board_snapshot)과 같은 우선순위. 예전에는 비활성화를 빼먹어 여기서만 「참석」으로 보였다.
+  function cip(session: number) {
     const rec = recs.get(session);
-    if (rec) return rec.status;
-    if (
-      wd !== null &&
-      academyDays.includes(wd) &&
-      (ACADEMY_SESSIONS as readonly number[]).includes(session)
-    ) {
-      return "academy";
-    }
-    return student!.is_independent ? "independent" : "present";
+    return resolveNight({
+      record: rec
+        ? { status: rec.status, reason: rec.reason, selfReported: rec.self_reported }
+        : null,
+      inactive: !!student!.cip_inactive,
+      academy: isAcademySession(wd, academyDays, session),
+      independent: !!student!.is_independent,
+    });
   }
 
   return (
@@ -130,6 +131,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         {student.is_independent && (
           <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.independent}`}>
             자주반
+          </span>
+        )}
+        {student.cip_inactive && (
+          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.inactive}`}>
+            CIP 비활성
           </span>
         )}
       </div>
@@ -159,12 +165,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <h2 className="font-medium">🌙 오늘 CIP</h2>
             <ul className="mt-2 space-y-1.5">
               {SESSIONS.map((n) => {
-                const st = recs.get(n);
-                const status = cipStatus(n);
+                const { status, reason } = cip(n);
                 return (
                   <li key={n} className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-neutral-400">{SESSION_LABEL[n]}</span>
-                    <span className="truncate text-xs text-neutral-500">{st?.reason ?? ""}</span>
+                    <span className="truncate text-xs text-neutral-500">{reason ?? ""}</span>
                     <span className={`shrink-0 rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
                       {NS_LABEL[status]}
                     </span>

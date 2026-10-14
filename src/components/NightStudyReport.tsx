@@ -77,12 +77,18 @@ function SessionRow({
   function submit(nextStatus: string, nextReason: string) {
     start(async () => {
       try {
-        await reportNightStudy(session, nextStatus, nextReason);
+        const res = await reportNightStudy(session, nextStatus, nextReason);
+        if (!res.ok) {
+          toast(res.message, "error");
+          // 비활성화·마감처럼 화면이 낡아서 생긴 실패일 수 있으니 최신 상태로 다시 그린다
+          router.refresh();
+          return;
+        }
         toast(`${SESSION_LABEL[session]} 출결을 등록했어요.`);
         setOpen(false);
         router.refresh();
-      } catch (e) {
-        toast((e as Error).message, "error");
+      } catch {
+        toast("네트워크 오류로 등록하지 못했어요. 잠시 후 다시 시도해주세요.", "error");
       }
     });
   }

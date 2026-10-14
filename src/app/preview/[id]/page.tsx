@@ -22,7 +22,11 @@ export default async function PreviewPage({ params }: { params: { id: string } }
   const supabase = createClient();
   const { data } = await supabase
     .from("students")
-    .select("id, student_number, name, google_email, role, auth_user_id, is_independent")
+    // auth.ts 의 getCurrentStudent 와 같은 열을 가져온다.
+    // cip_inactive 가 빠져 있으면 비활성 학생도 미리보기에서는 일반 CIP 카드로 보인다.
+    .select(
+      "id, student_number, name, google_email, role, auth_user_id, is_independent, terms_agreed_at, terms_version, cip_inactive"
+    )
     .eq("id", params.id)
     .maybeSingle();
 

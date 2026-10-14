@@ -160,6 +160,8 @@ export async function GET(
     ".pick{margin:0 1vh;padding:2.4vh 4vh;font-size:3.4vh;font-weight:800;" +
     "border-width:2px;border-style:solid;border-radius:1.6vh;cursor:pointer;" +
     "font-family:inherit;}" +
+    ".note{margin-top:5vh;padding:3vh 5vh;border-radius:1.6vh;border:1px solid rgba(90,90,100,0.4);" +
+    "font-size:2.8vh;font-weight:700;color:#9a9aa6;line-height:1.5;}" +
     ".back{display:inline-block;margin-top:5vh;font-size:2vh;color:#7a7a86;text-decoration:none;}" +
     ".empty{border:1px dashed rgba(255,255,255,0.06);border-radius:1.4vh;" +
     "display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;" +
@@ -234,7 +236,10 @@ export async function GET(
       (code ? "k=" + encodeURIComponent(code) : "");
 
     let buttons = "";
-    for (const k of ["present", "academy", "hospital", "special", "other"] as NightStatus[]) {
+    // 비활성 학생은 고를 게 없다 (DB 의 board_report 에서도 막힌다)
+    const picks: NightStatus[] =
+      target.status === "inactive" ? [] : ["present", "academy", "hospital", "special", "other"];
+    for (const k of picks) {
       const c = COLOR[k];
       buttons +=
         '<form method="post" style="display:inline-block">' +
@@ -252,7 +257,10 @@ export async function GET(
       '<div class="editname">' + esc(target.name) + "</div>" +
       '<div class="editsub">' + editSeat + "번 · " + SESSION_LABEL[session] +
       " · 현재 " + NS_LABEL[target.status] + "</div>" +
-      '<div class="picks">' + buttons + "</div>" +
+      (target.status === "inactive"
+        ? '<div class="note">CIP 참여 대상이 아닌 학생입니다.<br>' +
+          '<span style="font-size:2vh;color:#6a6a72">변경이 필요하면 관리자에게 말해주세요.</span></div>'
+        : '<div class="picks">' + buttons + "</div>") +
       '<a class="back" href="' + esc(backHref) + '">취소하고 돌아가기</a>' +
       "</div>";
 
@@ -275,14 +283,17 @@ export async function GET(
       continue;
     }
     const c = COLOR[r.status] || COLOR.other;
+    const isInactive = r.status === "inactive";
     // 카드를 눌러 상태를 고칠 수 있게 링크로 만든다 (자바스크립트 없이 페이지 이동)
+    // 비활성 학생도 누르면 「대상이 아님」 안내가 뜨도록 링크는 유지한다.
     const editHref =
       "?edit=" + n + "&s=" + session + (code ? "&k=" + encodeURIComponent(code) : "");
     cells +=
       '<a class="cell" href="' + esc(editHref) + '" style="background:' + c[0] +
       ";border-color:" + c[2] + '">' +
       '<div class="no">' + n + "번</div>" +
-      '<div class="nm">' + esc(r.name) + "</div>" +
+      '<div class="nm"' + (isInactive ? ' style="color:#6a6a72"' : "") + ">" +
+      esc(r.name) + "</div>" +
       '<div><span class="st" style="background:' + c[3] + ";color:" + c[1] + '">' +
       NS_LABEL[r.status] + "</span></div>" +
       (r.reason ? '<div class="rs">' + esc(r.reason) + "</div>" : "") +

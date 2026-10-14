@@ -70,6 +70,57 @@ export const SESSION_TIME: Record<Session, { start: number; end: number; label: 
  */
 export const ACADEMY_SESSIONS: readonly Session[] = [2, 3];
 
+/** 하루 한 차수의 기록 (night_study_records 한 줄) */
+export type NightRecord = {
+  status: NightStatus;
+  reason: string | null;
+  selfReported: boolean;
+};
+
+/** 상태가 어디서 나왔는지. 화면에서 「관리자 지정」「학원 요일」 같은 꼬리표를 붙일 때 쓴다. */
+export type NightSource = "admin" | "inactive" | "self" | "academy" | "independent" | "default";
+
+/**
+ * 한 학생의 한 차수 상태를 정한다.
+ *
+ * 우선순위는 DB 의 board_snapshot 과 반드시 같아야 한다.
+ *   관리자 기록 > 비활성화 > 본인 신고 > 학원 > 자주반 > 참석
+ *
+ * 예전에는 화면마다 이 판단을 따로 해서, 관리자 화면은 비활성화를 반영하고
+ * 학생 상세·미리보기는 반영하지 않는 식으로 어긋났다. 이제 전부 여기를 거친다.
+ */
+export function resolveNight(input: {
+  record?: NightRecord | null;
+  inactive: boolean;
+  /** 오늘 이 차수가 학원 스케줄에 걸리는지 */
+  academy: boolean;
+  academyNote?: string | null;
+  independent: boolean;
+}): { status: NightStatus; reason: string | null; source: NightSource } {
+  const { record, inactive, academy, academyNote, independent } = input;
+  if (record && !record.selfReported) {
+    return { status: record.status, reason: record.reason, source: "admin" };
+  }
+  if (inactive) return { status: "inactive", reason: null, source: "inactive" };
+  if (record) return { status: record.status, reason: record.reason, source: "self" };
+  if (academy) return { status: "academy", reason: academyNote ?? null, source: "academy" };
+  if (independent) return { status: "independent", reason: null, source: "independent" };
+  return { status: "present", reason: null, source: "default" };
+}
+
+/** 학원 요일 목록만 있을 때, 오늘 이 차수가 학원인지 (학원은 2·3차 고정) */
+export function isAcademySession(
+  weekday: number | null,
+  academyDays: readonly number[],
+  session: number
+): boolean {
+  return (
+    weekday !== null &&
+    academyDays.includes(weekday) &&
+    (ACADEMY_SESSIONS as readonly number[]).includes(session)
+  );
+}
+
 /** CIP 운영 요일: 월~목 (금요일·주말은 없음) */
 export function isCipDay(weekday: number | null): boolean {
   return weekday !== null && weekday >= 1 && weekday <= 4;

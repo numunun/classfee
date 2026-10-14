@@ -17,11 +17,14 @@ import {
   REASON_PLACEHOLDER,
   SESSIONS,
   SESSION_LABEL,
-  ACADEMY_SESSIONS,
   seatNo,
+  resolveNight,
+  isAcademySession,
   type NightStatus,
   type ReasonType,
   type Session,
+  type NightRecord,
+  type NightSource,
 } from "@/lib/night-study";
 import { matches } from "@/lib/hangul";
 
@@ -31,7 +34,7 @@ export type Row = {
   student_number: number | null;
   isIndependent: boolean;
   isInactive: boolean;
-  states: Record<number, { status: NightStatus; reason: string | null; selfReported: boolean }>;
+  states: Record<number, NightRecord>;
   /** 학원 가는 요일 (1=월 … 4=목). 차수는 2·3차로 고정 */
   academyDays: number[];
 };
@@ -39,26 +42,22 @@ export type Row = {
 const DAYS = ["월", "화", "수", "목"];
 const CHOICES: NightStatus[] = ["present", ...REASON_TYPES];
 
-/**
- * 기록이 없을 때의 기본 상태.
- * 우선순위: 당일 기록 > 학원 스케줄 > 자주반 > 참석
- * 학원이 자주반보다 앞선다 (학원 가는 날은 자주반도 안 가므로).
- */
-function resolve(row: Row, session: Session, weekday: number | null): NightStatus {
-  const rec = row.states[session];
-  // 관리자가 직접 지정한 기록이 최우선
-  if (rec && !rec.selfReported) return rec.status;
-  // 그다음 비활성화
-  if (row.isInactive) return "inactive";
-  if (rec) return rec.status;
-  const isAcademy =
-    weekday !== null &&
-    row.academyDays.includes(weekday) &&
-    (ACADEMY_SESSIONS as readonly number[]).includes(session);
-  if (isAcademy) return "academy";
-  if (row.isIndependent) return "independent";
-  return "present";
+/** 현황판(board_snapshot)과 같은 우선순위로 상태를 정한다. */
+function resolve(row: Row, session: Session, weekday: number | null) {
+  return resolveNight({
+    record: row.states[session],
+    inactive: row.isInactive,
+    academy: isAcademySession(weekday, row.academyDays, session),
+    independent: row.isIndependent,
+  });
 }
+
+/** 상태 옆에 붙이는 작은 꼬리표 */
+const SOURCE_TAG: Partial<Record<NightSource, { text: string; cls: string }>> = {
+  admin: { text: "관리자 지정", cls: "text-blue-400/70" },
+  self: { text: "본인 신고", cls: "text-neutral-600" },
+  academy: { text: "학원 요일", cls: "text-neutral-600" },
+};
 
 function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Session) => void }) {
   return (
@@ -134,14 +133,19 @@ function TodayList({
     ? rows.filter((r) => matches(r.name, q) || String(r.student_number ?? "").includes(q))
     : rows;
 
-  const attending = rows.filter((r) => resolve(r, session, weekday) === "present").length;
+  // 비활성 학생은 CIP 대상이 아니므로 분모에서 뺀다 (관리자가 따로 지정한 경우는 대상으로 본다)
+  const resolved = rows.map((r) => resolve(r, session, weekday).status);
+  const targets = resolved.filter((st) => st !== "inactive").length;
+  const attending = resolved.filter((st) => st === "present").length;
+  const inactiveCount = rows.length - targets;
 
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
         <SessionTabs value={session} onChange={setSession} />
         <span className="text-xs text-neutral-500">
-          참석 {attending} / {rows.length}명
+          참석 {attending} / {targets}명
+          {inactiveCount > 0 && <span className="ml-1.5 text-neutral-600">· 비활성 {inactiveCount}</span>}
         </span>
       </div>
 
@@ -182,8 +186,10 @@ function StudentRow({
   weekday: number | null;
 }) {
   const st = row.states[session];
-  const status = resolve(row, session, weekday);
+  const { status, source } = resolve(row, session, weekday);
   const hasRecord = !!st;
+  // 비활성(source = inactive)일 때는 꼬리표 없이 「비활성화」 배지만 보인다
+  const tag = SOURCE_TAG[source];
 
   const [draft, setDraft] = useState<ReasonType | null>(null);
   const [reason, setReason] = useState(st?.reason ?? "");
@@ -193,25 +199,25 @@ function StudentRow({
 
   function apply(next: NightStatus, why: string) {
     start(async () => {
-      try {
-        await setNightStatus(row.id, date, session, next, why);
-        setDraft(null);
-        router.refresh();
-      } catch (e) {
-        toast((e as Error).message, "error");
+      const res = await setNightStatus(row.id, date, session, next, why);
+      if (!res.ok) {
+        toast(res.message, "error");
+        return;
       }
+      setDraft(null);
+      router.refresh();
     });
   }
 
   function clear() {
     start(async () => {
-      try {
-        await clearNightStatus(row.id, date, session);
-        setDraft(null);
-        router.refresh();
-      } catch (e) {
-        toast((e as Error).message, "error");
+      const res = await clearNightStatus(row.id, date, session);
+      if (!res.ok) {
+        toast(res.message, "error");
+        return;
       }
+      setDraft(null);
+      router.refresh();
     });
   }
 
@@ -226,21 +232,29 @@ function StudentRow({
   }
 
   return (
-    <li className="border-b border-line px-4 py-3 last:border-0">
+    <li
+      className={`border-b border-line px-4 py-3 last:border-0 ${
+        status === "inactive" ? "opacity-60" : ""
+      }`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm">
             <span className="mr-2 text-neutral-500">{seatNo(row.student_number) ?? "-"}</span>
             {row.name}
-            {st?.selfReported && <span className="ml-2 text-xs text-neutral-600">본인 신고</span>}
-            {hasRecord && !st?.selfReported && (
-              <span className="ml-2 text-xs text-blue-400/70">관리자 지정</span>
-            )}
-            {!hasRecord && status === "academy" && (
-              <span className="ml-2 text-xs text-neutral-600">학원 요일</span>
+            {tag && <span className={`ml-2 text-xs ${tag.cls}`}>{tag.text}</span>}
+            {row.isInactive && source === "admin" && (
+              <span className="ml-2 text-xs text-neutral-600">비활성 학생</span>
             )}
           </p>
-          {st?.reason && !draft && <p className="truncate text-xs text-neutral-500">{st.reason}</p>}
+          {st?.reason && !draft && status !== "inactive" && (
+            <p className="truncate text-xs text-neutral-500">{st.reason}</p>
+          )}
+          {status === "inactive" && st?.selfReported && (
+            <p className="truncate text-xs text-neutral-600">
+              비활성 전에 남은 신고({NS_LABEL[st.status]})는 반영되지 않아요.
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
@@ -323,25 +337,37 @@ function ScheduleList({ rows }: { rows: Row[] }) {
 
   function save(studentId: string) {
     start(async () => {
-      try {
-        await saveAcademyDays(studentId, draft[studentId] ?? []);
-        toast("학원 요일을 저장했어요.");
-        router.refresh();
-      } catch (e) {
-        toast((e as Error).message, "error");
+      const res = await saveAcademyDays(studentId, draft[studentId] ?? []);
+      if (!res.ok) {
+        toast(res.message, "error");
+        return;
       }
+      toast("학원 요일을 저장했어요.");
+      router.refresh();
     });
   }
 
   function toggleIndependent(studentId: string, value: boolean) {
     start(async () => {
-      try {
-        await setIndependent(studentId, value);
-        toast(value ? "자주반으로 지정했어요." : "자주반을 해제했어요.");
-        router.refresh();
-      } catch (e) {
-        toast((e as Error).message, "error");
+      const res = await setIndependent(studentId, value);
+      if (!res.ok) {
+        toast(res.message, "error");
+        return;
       }
+      toast(value ? "자주반으로 지정했어요." : "자주반을 해제했어요.");
+      router.refresh();
+    });
+  }
+
+  function toggleInactive(studentId: string, value: boolean) {
+    start(async () => {
+      const res = await setCipInactive(studentId, value);
+      if (!res.ok) {
+        toast(res.message, "error");
+        return;
+      }
+      toast(value ? "CIP 비활성화했어요." : "CIP 대상으로 되돌렸어요.");
+      router.refresh();
     });
   }
 
@@ -350,7 +376,8 @@ function ScheduleList({ rows }: { rows: Row[] }) {
       <p className="mb-3 text-xs leading-relaxed text-neutral-500">
         학원 가는 요일을 체크해두면 그날 <span className="text-neutral-300">2차·3차</span>가 자동으로
         「학원」이 돼요. 1차는 참석이에요. 자주반은 한 번 켜두면 매일 적용되고, 학원 가는 날에는
-        학원이 우선해요.
+        학원이 우선해요. 「비활성」은 CIP 자체를 하지 않는 학생이에요. 학생 신고와 전자칠판
+        수정이 막히고, 관리자가 직접 지정한 기록만 표시돼요.
       </p>
 
       <ul className="overflow-hidden rounded-2xl bg-surface">
@@ -379,17 +406,7 @@ function ScheduleList({ rows }: { rows: Row[] }) {
                   </button>
                   <button
                     disabled={pending}
-                    onClick={() =>
-                      start(async () => {
-                        try {
-                          await setCipInactive(r.id, !r.isInactive);
-                          toast(r.isInactive ? "CIP 대상으로 되돌렸어요." : "CIP 비활성화했어요.");
-                          router.refresh();
-                        } catch (e) {
-                          toast((e as Error).message, "error");
-                        }
-                      })
-                    }
+                    onClick={() => toggleInactive(r.id, !r.isInactive)}
                     className={`rounded-lg border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
                       r.isInactive
                         ? NS_STYLE.inactive

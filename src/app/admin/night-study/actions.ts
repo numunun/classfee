@@ -5,31 +5,41 @@ import { getCurrentStudent } from "@/lib/auth";
 import { ACADEMY_SESSIONS } from "@/lib/night-study";
 import { revalidatePath } from "next/cache";
 
-async function assertAdmin() {
-  const me = await getCurrentStudent();
-  if (!me || me.role !== "admin") throw new Error("권한이 없습니다.");
-  return me;
-}
+/**
+ * 서버 액션이 throw 하면 프로덕션에서 메시지가 가려진다.
+ * 사용자에게 이유를 보여줘야 하므로 전부 { ok, message } 로 돌려준다.
+ */
+export type NightActionResult = { ok: true } | { ok: false; message: string };
 
+const DENIED: NightActionResult = { ok: false, message: "권한이 없습니다." };
 const VALID = ["present", "academy", "hospital", "special", "other"];
+
+async function adminOrNull() {
+  const me = await getCurrentStudent();
+  return me && me.role === "admin" ? me : null;
+}
 
 function touch() {
   revalidatePath("/admin/night-study");
+  revalidatePath("/admin/students", "layout");
+  revalidatePath("/preview", "layout");
   revalidatePath("/student");
   revalidatePath("/board", "layout");
 }
 
 // 관리자가 특정 학생의 특정 차수 출결을 지정한다.
+// 비활성 학생에게도 지정할 수 있다. (관리자 기록이 비활성화보다 우선)
 export async function setNightStatus(
   studentId: string,
   studyDate: string,
   session: number,
   status: string,
   reason?: string
-) {
-  const me = await assertAdmin();
-  if (!VALID.includes(status)) throw new Error("올바르지 않은 상태입니다.");
-  if (session < 1 || session > 3) throw new Error("올바르지 않은 차수입니다.");
+): Promise<NightActionResult> {
+  const me = await adminOrNull();
+  if (!me) return DENIED;
+  if (!VALID.includes(status)) return { ok: false, message: "올바르지 않은 상태입니다." };
+  if (session < 1 || session > 3) return { ok: false, message: "올바르지 않은 차수입니다." };
 
   const supabase = createClient();
   const { error } = await supabase.from("night_study_records").upsert(
@@ -41,21 +51,22 @@ export async function setNightStatus(
       reason: reason?.trim() || null,
       self_reported: false, // 관리자 처리 표시. 학생이 덮어쓸 수 없게 된다.
       recorded_by: me.id,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(), // timestamptz 라 UTC 로 넣어도 된다 (날짜 계산 아님)
     },
     { onConflict: "student_id,study_date,session" }
   );
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, message: error.message };
   touch();
+  return { ok: true };
 }
 
-// 기록을 지워 기본값(참석 / 학원 스케줄 / 자주반)으로 되돌린다.
+// 기록을 지워 기본값(비활성화 / 학원 스케줄 / 자주반 / 참석)으로 되돌린다.
 export async function clearNightStatus(
   studentId: string,
   studyDate: string,
   session: number
-) {
-  await assertAdmin();
+): Promise<NightActionResult> {
+  if (!(await adminOrNull())) return DENIED;
   const supabase = createClient();
   const { error } = await supabase
     .from("night_study_records")
@@ -63,20 +74,25 @@ export async function clearNightStatus(
     .eq("student_id", studentId)
     .eq("study_date", studyDate)
     .eq("session", session);
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, message: error.message };
   touch();
+  return { ok: true };
 }
 
 // 학원 가는 요일을 통째로 교체한다.
 // 학원 가는 날에도 1차는 참석하므로 2·3차에만 기록한다.
-export async function saveAcademyDays(studentId: string, weekdays: number[]) {
-  const me = await assertAdmin();
+export async function saveAcademyDays(
+  studentId: string,
+  weekdays: number[]
+): Promise<NightActionResult> {
+  const me = await adminOrNull();
+  if (!me) return DENIED;
   const supabase = createClient();
 
   const clean = Array.from(new Set(weekdays)).filter((d) => d >= 1 && d <= 4);
 
   const del = await supabase.from("academy_schedules").delete().eq("student_id", studentId);
-  if (del.error) throw new Error(del.error.message);
+  if (del.error) return { ok: false, message: del.error.message };
 
   if (clean.length > 0) {
     const payload = clean.flatMap((weekday) =>
@@ -88,31 +104,45 @@ export async function saveAcademyDays(studentId: string, weekdays: number[]) {
       }))
     );
     const { error } = await supabase.from("academy_schedules").insert(payload);
-    if (error) throw new Error(error.message);
+    if (error) return { ok: false, message: error.message };
   }
   touch();
+  return { ok: true };
 }
 
 // 자주반 여부 토글 (명단 속성)
-export async function setIndependent(studentId: string, value: boolean) {
-  await assertAdmin();
+export async function setIndependent(
+  studentId: string,
+  value: boolean
+): Promise<NightActionResult> {
+  if (!(await adminOrNull())) return DENIED;
   const supabase = createClient();
   const { error } = await supabase
     .from("students")
     .update({ is_independent: value })
     .eq("id", studentId);
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, message: error.message };
   touch();
+  return { ok: true };
 }
 
 // CIP 자체를 하지 않는 학생 토글
-export async function setCipInactive(studentId: string, value: boolean) {
-  await assertAdmin();
+export async function setCipInactive(
+  studentId: string,
+  value: boolean
+): Promise<NightActionResult> {
+  if (!(await adminOrNull())) return DENIED;
   const supabase = createClient();
-  const { error } = await supabase
+  // RLS 에 막히면 error 없이 0행이 바뀐다. 실제로 바뀐 행을 받아 확인한다.
+  const { data, error } = await supabase
     .from("students")
     .update({ cip_inactive: value })
-    .eq("id", studentId);
-  if (error) throw new Error(error.message);
+    .eq("id", studentId)
+    .select("id");
+  if (error) return { ok: false, message: error.message };
+  if (!data || data.length === 0) {
+    return { ok: false, message: "변경된 학생이 없어요. 권한 또는 학생 정보를 확인하세요." };
+  }
   touch();
+  return { ok: true };
 }
