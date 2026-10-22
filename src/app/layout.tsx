@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { RegisterSW } from "@/components/RegisterSW";
 import "./globals.css";
 import { ToastProvider } from "@/components/Toast";
 import { Footer } from "@/components/Footer";
@@ -11,7 +12,10 @@ export const metadata: Metadata = {
     template: "%s · 학급 관리",
   },
   description: "CIP 출결 · 급식 · 학급 벌금을 한곳에서",
+    appleWebApp: { capable: true, title: "학급 관리", statusBarStyle: "black-translucent" },
 };
+
+export const viewport: Viewport = { themeColor: "#0e0e10" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // 테마 색을 레이아웃에서 넣는다. 페이지가 넣으면 로딩 화면(loading.tsx)이
@@ -34,6 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ToastProvider>
           {children}
           <Footer />
+          <RegisterSW />
         </ToastProvider>
       </body>
     </html>
