@@ -281,11 +281,15 @@ const GLASS = `
   backdrop-filter:blur(18px) saturate(1.4);
   box-shadow:0 0 0 1px rgb(var(--c-line)), 0 6px 20px rgba(0,0,0,.06);
 }
+/* 기존 .bg-surface-2 { ... } 블록을 이걸로 교체 */
 .bg-surface-2{
-  background-color:rgb(var(--c-surface-2)/.5) !important;
-  -webkit-backdrop-filter:blur(14px) saturate(1.3);
-  backdrop-filter:blur(14px) saturate(1.3);
+  background-color:rgb(var(--c-surface-2)/.75) !important;
   box-shadow:0 0 0 1px rgb(var(--c-line));
+}
+/* 흐림이 겹치면 크롬이 화면 일부를 못 그린다. 카드 안쪽 카드는 흐림 없이 */
+.bg-surface .bg-surface{
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
 }
 /* 버튼은 눌리는 요소이므로 경계를 조금 더 또렷하게 */
 button.bg-surface-2,a.bg-surface-2{
