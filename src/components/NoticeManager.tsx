@@ -60,7 +60,7 @@ export function NoticeManager({ rows }: { rows: NoticeRow[] }) {
             toast((e as Error).message, "error");
           }
         }}
-        className="space-y-3 rounded-2xl bg-surface p-5"
+        className="space-y-3 rounded-3xl bg-surface p-5"
       >
         <h2 className="font-medium">새 공지</h2>
         <div>
@@ -83,7 +83,7 @@ export function NoticeManager({ rows }: { rows: NoticeRow[] }) {
         </div>
         <button
           disabled={pending}
-          className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+          className="btn btn-primary press w-full"
         >
           올리기
         </button>
@@ -160,7 +160,7 @@ function NoticeItem({
                   setEditing(false);
                 }, "공지를 수정했어요.")
               }
-              className="h-10 flex-1 rounded-xl bg-white text-sm font-medium text-neutral-900 disabled:opacity-50"
+              className="h-10 flex-1 rounded-xl btn-primary text-sm font-semibold disabled:opacity-50 press"
             >
               저장
             </button>

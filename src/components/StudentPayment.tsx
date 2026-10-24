@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/Toast";
@@ -116,11 +117,8 @@ export function StudentPayment({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 font-semibold"
-        style={{ background: "rgb(var(--c-accent))", color: "#fff" }}
-      >
+      <button onClick={() => setOpen(true)} className="btn btn-primary press w-full">
+        <Send className="size-4" aria-hidden />
         입금 완료 신청하기
       </button>
 

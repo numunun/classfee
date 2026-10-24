@@ -67,7 +67,7 @@ function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Sessio
           key={n}
           onClick={() => onChange(n)}
           className={`h-9 rounded-lg px-3 text-xs font-medium ${
-            value === n ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-400"
+            value === n ? "btn-primary" : "bg-surface-2 text-neutral-400"
           }`}
         >
           {SESSION_LABEL[n]}
@@ -93,7 +93,7 @@ export function NightStudyAdmin({
         <button
           onClick={() => setTab("today")}
           className={`h-11 rounded-xl px-4 text-sm font-medium ${
-            tab === "today" ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-300"
+            tab === "today" ? "btn-primary" : "bg-surface-2 text-neutral-300"
           }`}
         >
           오늘 출결
@@ -101,7 +101,7 @@ export function NightStudyAdmin({
         <button
           onClick={() => setTab("schedule")}
           className={`h-11 rounded-xl px-4 text-sm font-medium ${
-            tab === "schedule" ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-300"
+            tab === "schedule" ? "btn-primary" : "bg-surface-2 text-neutral-300"
           }`}
         >
           학원 · 자주반
@@ -257,7 +257,7 @@ function StudentRow({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
+          <span className={`pill border ${NS_STYLE[status]}`}>
             {NS_LABEL[status]}
           </span>
           {hasRecord && (
@@ -300,7 +300,7 @@ function StudentRow({
           <button
             disabled={pending}
             onClick={() => apply(draft, reason)}
-            className="h-[2.875rem] shrink-0 rounded-xl bg-white px-4 text-sm font-medium text-neutral-900 disabled:opacity-50"
+            className="h-[2.875rem] shrink-0 rounded-xl btn-primary px-4 text-sm font-semibold disabled:opacity-50 press"
           >
             저장
           </button>
@@ -436,7 +436,7 @@ function ScheduleList({ rows }: { rows: Row[] }) {
                 <button
                   disabled={pending || !dirty}
                   onClick={() => save(r.id)}
-                  className="h-9 shrink-0 rounded-lg bg-white px-3 text-xs font-medium text-neutral-900 disabled:opacity-30"
+                  className="h-9 shrink-0 rounded-lg btn-primary px-3 text-xs font-semibold disabled:opacity-30 press"
                 >
                   저장
                 </button>

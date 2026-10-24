@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { School, LayoutDashboard, ChevronLeft } from "lucide-react";
 import { SignOutButton } from "./SignOutButton";
 
 export function TopBar({
@@ -16,28 +17,32 @@ export function TopBar({
 }) {
   return (
     <header className="flex items-center justify-between gap-3 py-1">
-      <div className="flex items-center gap-3">
-        <span className="grid size-9 place-items-center rounded-xl bg-accent text-lg">🏫</span>
-        <h1 className="text-lg font-semibold">{title}</h1>
+      <div className="flex min-w-0 items-center gap-3">
+        {/* 아이콘 색은 인라인으로 고정한다. 밝은 테마의 글자색 반전 규칙에 걸리지 않게 */}
+        <span
+          className="grid size-10 shrink-0 place-items-center rounded-2xl"
+          style={{ background: "rgb(var(--c-accent))", color: "#fff" }}
+        >
+          <School className="size-5" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-bold leading-tight">{title}</h1>
+          <p className="truncate text-xs text-neutral-500">{who}</p>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5">
         {isAdmin && here === "student" && (
-          <Link
-            href="/admin"
-            className="rounded-lg border border-accent/50 bg-accent/15 px-2.5 py-1.5 text-xs font-semibold text-accent"
-          >
+          <Link href="/admin" className="btn btn-sm press bg-surface-2 text-neutral-200">
+            <LayoutDashboard className="size-4" aria-hidden />
             관리
           </Link>
         )}
         {here === "admin" && (
-          <Link
-            href="/student"
-            className="rounded-lg bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-neutral-300 hover:bg-line"
-          >
-            ← 내 화면
+          <Link href="/student" className="btn btn-sm press bg-surface-2 text-neutral-200">
+            <ChevronLeft className="-ml-1 size-4" aria-hidden />
+            내 화면
           </Link>
         )}
-        <span className="hidden text-sm text-neutral-400 sm:inline">{who}</span>
         <SignOutButton />
       </div>
     </header>

@@ -39,7 +39,7 @@ export function StudentManager({ students }: { students: Student[] }) {
             toast(res.message, "error");
           }
         }}
-        className="space-y-3 rounded-2xl bg-surface p-5"
+        className="space-y-3 rounded-3xl bg-surface p-5"
       >
         <h2 className="font-medium">학생 추가</h2>
         <p className="text-xs leading-relaxed text-neutral-500">
@@ -68,7 +68,7 @@ export function StudentManager({ students }: { students: Student[] }) {
           </select>
           <button
             disabled={pending}
-            className="h-[2.875rem] shrink-0 rounded-xl bg-white px-6 text-sm font-medium text-neutral-900 disabled:opacity-50"
+            className="h-[2.875rem] shrink-0 rounded-xl btn-primary px-6 text-sm font-semibold disabled:opacity-50 press"
           >
             추가
           </button>

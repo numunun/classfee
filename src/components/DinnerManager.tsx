@@ -47,7 +47,7 @@ export function DinnerManager({ rows }: { rows: DinnerRow[] }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl bg-surface p-5">
+      <section className="rounded-3xl bg-surface p-5">
         <h2 className="font-medium">석식 한 번에 등록</h2>
         <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
           한 줄에 하루씩, <span className="text-neutral-300">날짜 + 메뉴</span> 순서로 붙여넣으세요.
@@ -69,7 +69,7 @@ export function DinnerManager({ rows }: { rows: DinnerRow[] }) {
         <button
           onClick={submit}
           disabled={pending}
-          className="mt-3 h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+          className="btn btn-primary press w-full mt-3"
         >
           {pending ? "저장 중…" : "저장하기"}
         </button>

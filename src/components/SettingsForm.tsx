@@ -8,7 +8,7 @@ import type { Settings } from "@/lib/types";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl bg-surface p-5">
+    <section className="rounded-3xl bg-surface p-5">
       <h2 className="mb-4 text-sm font-medium text-neutral-200">{title}</h2>
       <div className="space-y-3">{children}</div>
     </section>
@@ -162,7 +162,7 @@ export function SettingsForm({ s }: { s: Settings }) {
         </label>
       </Card>
 
-      <section className="space-y-3 rounded-2xl bg-surface p-5">
+      <section className="space-y-3 rounded-3xl bg-surface p-5">
         <h2 className="font-medium">🛠 점검 모드</h2>
         <p className="text-xs leading-relaxed text-neutral-500">
           켜면 모든 화면 맨 위에 안내 배너가 떠요. 공지를 올렸다 내리지 않아도 돼요.
@@ -190,7 +190,7 @@ export function SettingsForm({ s }: { s: Settings }) {
 
       <button
         disabled={pending}
-        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+        className="btn btn-primary press w-full"
       >
         {pending ? "저장 중…" : "설정 저장"}
       </button>

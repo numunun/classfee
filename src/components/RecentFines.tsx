@@ -35,9 +35,9 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
   const shown = (showCancelled ? rows : rows.filter((f) => !f.deleted_at)).slice(0, 30);
 
   return (
-    <section className="rounded-2xl bg-surface">
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <h2 className="text-sm font-medium text-neutral-300">최근 벌금 내역</h2>
+    <section className="rounded-3xl bg-surface">
+      <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-4">
+        <h2 className="font-semibold">최근 벌금 내역</h2>
         {cancelledCount > 0 && (
           <label className="flex cursor-pointer items-center gap-2 text-xs text-neutral-500">
             <input
@@ -51,7 +51,7 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
         )}
       </div>
 
-      <ul className="overflow-hidden rounded-b-2xl">
+      <ul className="overflow-hidden rounded-b-3xl">
         {shown.map((f) => {
           const cancelled = !!f.deleted_at;
           // 끝난 건(완납·취소)은 흐리게 물러나고, 처리할 건만 또렷하게 남는다
@@ -80,16 +80,15 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
               <Avatar name={f.students?.name ?? "?"} />
 
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2">
-                  <span className={`truncate font-semibold ${done ? "line-through" : ""}`}>
-                    {f.students?.name}
-                  </span>
-                  <span className="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 text-[11px] text-neutral-400">
-                    {label}
-                    {f.type === "cleaning" && " 자동"}
-                  </span>
+                <p className={`truncate text-[0.9375rem] font-semibold ${done ? "line-through" : ""}`}>
+                  {f.students?.name}
                 </p>
                 <p className="truncate text-xs text-neutral-500">
+                  <span className="font-medium text-neutral-400">
+                    {label}
+                    {f.type === "cleaning" && " (자동)"}
+                  </span>
+                  {" · "}
                   {shortDate(f.created_at)}
                   {note ? ` · ${note}` : ""}
                   {cancelled && f.delete_reason ? ` · ${f.delete_reason}` : ""}

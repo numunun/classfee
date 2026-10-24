@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/Avatar";
 import { ApprovalButtons } from "@/components/PaymentApproval";
 import { FINE_TYPE_LABEL, payable, won, type FineStatus, type FineType } from "@/lib/types";
+import { PageHeader, HeaderLink } from "@/components/PageHeader";
 
 type Req = {
   id: string;
@@ -48,16 +48,11 @@ export default async function PaymentsPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>
-      <div className="mb-4 mt-2 flex items-center justify-between gap-3">
-        <h1 className="flex items-center gap-2 text-lg font-semibold">📷 입금 승인 대기</h1>
-        <Link
-          href="/admin/payments/history"
-          className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
-        >
-          처리 내역 →
-        </Link>
-      </div>
+      <PageHeader
+        back={{ href: "/admin", label: "대시보드" }}
+        title="입금 승인"
+        action={<HeaderLink href="/admin/payments/history">처리 내역</HeaderLink>}
+      />
 
       {reqs.length === 0 && (
         <p className="rounded-2xl bg-surface px-4 py-8 text-center text-sm text-neutral-500">

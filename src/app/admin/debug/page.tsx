@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMeals } from "@/lib/neis";
@@ -9,6 +8,7 @@ import {
   liveSessionAt,
   seoulMinutesOfDay,
 } from "@/lib/night-study";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "진단" };
@@ -187,13 +187,11 @@ export default async function DebugPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">
-        ← 대시보드
-      </Link>
-      <h1 className="mb-1 mt-2 text-lg font-semibold">🩺 진단</h1>
-      <p className="mb-4 text-xs text-neutral-500">
-        관리자만 볼 수 있어요. 키와 계좌번호는 값이 표시되지 않아요.
-      </p>
+      <PageHeader
+        back={{ href: "/admin", label: "대시보드" }}
+        title="진단"
+        description="관리자만 볼 수 있어요. 키와 계좌번호는 값이 표시되지 않아요."
+      />
 
       {repError && (
         <div className="mb-4 rounded-xl border border-red-800/60 bg-red-950/40 px-4 py-3 text-sm text-red-300">

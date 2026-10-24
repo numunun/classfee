@@ -23,7 +23,7 @@ export function OnboardingForm() {
           setPending(false);
         }
       }}
-      className="space-y-4 rounded-2xl bg-surface p-5"
+      className="space-y-4 rounded-3xl bg-surface p-5"
     >
       <div>
         <label htmlFor="name">이름</label>
@@ -43,7 +43,7 @@ export function OnboardingForm() {
       </div>
       <button
         disabled={pending}
-        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+        className="btn btn-primary press w-full"
       >
         {pending ? "등록 중…" : "등록하고 시작하기"}
       </button>

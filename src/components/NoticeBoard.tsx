@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { Megaphone } from "lucide-react";
+import { CardTitle } from "@/components/CardTitle";
 import { RichText } from "@/components/RichText";
 
 type Notice = {
@@ -26,13 +28,13 @@ export async function NoticeBoard() {
   if (notices.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-accent/40 bg-accent/5 p-5">
-      <h2 className="text-sm font-semibold text-accent">📢 공지</h2>
-      <ul className="mt-3 space-y-3">
+    <section className="rounded-3xl bg-surface p-5">
+      <CardTitle icon={Megaphone}>공지</CardTitle>
+      <ul className="mt-3 divide-y divide-line">
         {notices.map((n) => (
-          <li key={n.id} className="border-l-2 border-accent/60 pl-3">
+          <li key={n.id} className="py-3 first:pt-1 last:pb-0">
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm font-medium text-neutral-100">{n.title}</p>
+              <p className="text-[0.9375rem] font-semibold text-neutral-100">{n.title}</p>
               <span className="shrink-0 text-xs text-neutral-600">{ko(n.created_at)}</span>
             </div>
             {n.body && (

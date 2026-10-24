@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { NightStudyAdmin, type Row } from "@/components/NightStudyAdmin";
 import { todayISO, weekdayIndex, isCipDay, type NightStatus } from "@/lib/night-study";
+import { PageHeader, HeaderLink } from "@/components/PageHeader";
+import { ArrowUpRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "CIP 관리" };
@@ -80,19 +81,15 @@ export default async function NightStudyPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">
-        ← 대시보드
-      </Link>
-      <div className="mb-4 mt-2 flex items-center justify-between">
-        <h1 className="text-lg font-semibold">🌙 CIP 관리</h1>
-        <Link
-          href="/board/2/9"
-          target="_blank"
-          className="rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-neutral-300"
-        >
-          전자칠판 열기 ↗
-        </Link>
-      </div>
+      <PageHeader
+        back={{ href: "/admin", label: "대시보드" }}
+        title="CIP 관리"
+        action={
+          <HeaderLink href="/board/2/9" external>
+            전자칠판 <ArrowUpRight className="size-4" aria-hidden />
+          </HeaderLink>
+        }
+      />
 
       {!isCipDay(wd) && (
         <div className="mb-3 rounded-xl border border-line bg-surface-2 px-4 py-3 text-xs text-neutral-400">

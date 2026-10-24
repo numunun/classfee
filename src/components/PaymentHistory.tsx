@@ -55,7 +55,7 @@ export function PaymentHistory({ rows }: { rows: HistoryRow[] }) {
               key={k}
               onClick={() => setFilter(k)}
               className={`h-9 rounded-lg px-3 text-xs font-medium ${
-                filter === k ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-400"
+                filter === k ? "btn-primary" : "bg-surface-2 text-neutral-400"
               }`}
             >
               {label}

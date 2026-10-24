@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { SCHOOL_DOMAIN } from "@/lib/types";
+import { School } from "lucide-react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -21,21 +22,36 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center px-6 py-10">
-      <div className="w-full max-w-sm text-center">
-        <div className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-blue-600/90 text-2xl">
-          🏫
+    <main className="relative grid min-h-dvh place-items-center overflow-hidden px-6 py-10">
+      {/* 위쪽에 은은하게 번지는 강조색 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[60vh]"
+        style={{
+          background:
+            "radial-gradient(600px 320px at 50% -10%, rgb(var(--c-accent) / 0.28), transparent 70%)",
+        }}
+      />
+      <div className="relative w-full max-w-sm text-center">
+        <div
+          className="mx-auto mb-6 grid size-16 place-items-center rounded-[1.375rem] shadow-lg"
+          style={{
+            background: "rgb(var(--c-accent))",
+            color: "#fff",
+            boxShadow: "0 12px 40px rgb(var(--c-accent) / 0.45)",
+          }}
+        >
+          <School className="size-8" aria-hidden />
         </div>
-        <h1 className="text-xl font-semibold">학급 관리 시스템</h1>
-        <p className="mt-2 text-sm text-neutral-400">
-          학교 구글 계정으로 로그인하세요
-          {SCHOOL_DOMAIN ? ` (@${SCHOOL_DOMAIN})` : ""}
+        <h1 className="text-[1.75rem] font-bold">학급 관리</h1>
+        <p className="mt-2 text-[0.9375rem] leading-relaxed text-neutral-400">
+          CIP 출결 · 급식 · 학급 벌금을 한곳에서
         </p>
 
         <button
           onClick={signIn}
           disabled={loading}
-          className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 font-medium text-neutral-900 transition hover:bg-neutral-200 disabled:opacity-60"
+          className="press mt-10 flex h-[3.25rem] w-full items-center justify-center gap-3 rounded-2xl bg-white px-4 font-semibold text-neutral-900 transition hover:bg-neutral-100 disabled:opacity-60"
         >
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
             <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.5 13.3l7.8 6.1C12.2 13.2 17.6 9.5 24 9.5z" />
@@ -46,8 +62,10 @@ export default function LoginPage() {
           {loading ? "이동 중…" : "Google 계정으로 계속하기"}
         </button>
 
-        <p className="mt-3 text-xs leading-relaxed text-neutral-500">
-          처음 들어오시는 경우에도 같은 버튼으로 자동 가입돼요.
+        <p className="mt-4 text-xs leading-relaxed text-neutral-500">
+          학교 구글 계정{SCHOOL_DOMAIN ? `(@${SCHOOL_DOMAIN})` : ""}으로 로그인하세요.
+          <br />
+          처음이어도 같은 버튼으로 바로 가입돼요.
         </p>
       </div>
     </main>

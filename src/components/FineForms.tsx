@@ -71,7 +71,7 @@ function Tab({
     <button
       onClick={onClick}
       className={`h-11 rounded-xl px-4 text-sm font-medium ${
-        active ? "bg-white text-neutral-900" : "bg-surface-2 text-neutral-300"
+        active ? "btn-primary" : "bg-surface-2 text-neutral-300"
       }`}
     >
       {children}
@@ -142,7 +142,7 @@ function LateForm({
           setPending(false);
         }
       }}
-      className="space-y-4 rounded-2xl bg-surface p-5"
+      className="space-y-4 rounded-3xl bg-surface p-5"
     >
       <h2 className="font-semibold">⏰ 지각 벌금 부과</h2>
       <StudentSelect students={students} onPick={setPicked} />
@@ -180,7 +180,7 @@ function LateForm({
       </div>
       <button
         disabled={pending}
-        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+        className="btn btn-primary press w-full"
       >
         {pending ? "부과 중…" : "벌금 부과하기"}
       </button>
@@ -209,7 +209,7 @@ function OtherForm({ students }: { students: Opt[] }) {
           setPending(false);
         }
       }}
-      className="space-y-4 rounded-2xl bg-surface p-5"
+      className="space-y-4 rounded-3xl bg-surface p-5"
     >
       <h2 className="font-semibold">✏️ 기타 벌금 부과</h2>
       <StudentSelect students={students} />
@@ -248,7 +248,7 @@ function OtherForm({ students }: { students: Opt[] }) {
       </div>
       <button
         disabled={pending}
-        className="h-12 w-full rounded-xl bg-white font-medium text-neutral-900 disabled:opacity-50"
+        className="btn btn-primary press w-full"
       >
         {pending ? "부과 중…" : "벌금 부과하기"}
       </button>

@@ -1,10 +1,12 @@
 import type { FineStatus } from "@/lib/types";
 
+// 배경은 반투명 틴트라 어두운·밝은 테마 모두에서 그대로 쓸 수 있다.
+// 글자색(text-*-400)은 밝은 테마에서 themes.ts 가 진한 색으로 바꿔준다.
 const STYLE: Record<FineStatus, string> = {
-  unpaid: "bg-red-950 text-red-400 border-red-900/60",
-  doubled: "bg-red-950 text-red-400 border-red-900/60",
-  pending_approval: "bg-amber-950 text-amber-400 border-amber-900/60",
-  paid: "bg-green-950 text-green-400 border-green-900/60",
+  unpaid: "bg-red-500/15 text-red-400",
+  doubled: "bg-red-500/15 text-red-400",
+  pending_approval: "bg-amber-500/15 text-amber-400",
+  paid: "bg-green-500/15 text-green-400",
 };
 const TEXT: Record<FineStatus, string> = {
   unpaid: "미납",
@@ -14,9 +16,5 @@ const TEXT: Record<FineStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: FineStatus }) {
-  return (
-    <span className={`rounded-md border px-2 py-0.5 text-xs font-medium ${STYLE[status]}`}>
-      {TEXT[status]}
-    </span>
-  );
+  return <span className={`pill ${STYLE[status]}`}>{TEXT[status]}</span>;
 }

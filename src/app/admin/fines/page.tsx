@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/settings";
 import { FineForms } from "@/components/FineForms";
 import { todayISO } from "@/lib/night-study";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -55,8 +55,7 @@ export default async function NewFinePage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>
-      <h1 className="mb-4 mt-2 text-lg font-semibold">새 벌금 부과</h1>
+      <PageHeader back={{ href: "/admin", label: "대시보드" }} title="새 벌금 부과" />
       <FineForms students={list} lateAmount={base} nextAmount={nextAmount} />
     </>
   );

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CleaningForm } from "@/components/CleaningForm";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function CleaningPage() {
   const supabase = createClient();
@@ -11,8 +11,7 @@ export default async function CleaningPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>
-      <h1 className="mb-4 mt-2 text-lg font-semibold">청소 현황</h1>
+      <PageHeader back={{ href: "/admin", label: "대시보드" }} title="청소 현황" />
       <CleaningForm students={students ?? []} />
     </>
   );

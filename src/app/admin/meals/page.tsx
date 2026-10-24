@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DinnerManager, type DinnerRow } from "@/components/DinnerManager";
 import { todayISO } from "@/lib/night-study";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "석식 관리" };
@@ -20,13 +20,11 @@ export default async function MealsPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">
-        ← 대시보드
-      </Link>
-      <h1 className="mb-1 mt-2 text-lg font-semibold">🌙 석식 관리</h1>
-      <p className="mb-4 text-xs text-neutral-500">
-        학교가 NEIS 에 중식만 올려서, 석식은 여기에 직접 등록해요. 금요일은 석식이 없어요.
-      </p>
+      <PageHeader
+        back={{ href: "/admin", label: "대시보드" }}
+        title="석식 관리"
+        description="학교가 NEIS 에 중식만 올려서, 석식은 여기에 직접 등록해요. 금요일은 석식이 없어요."
+      />
       <DinnerManager rows={rows} />
     </>
   );

@@ -129,12 +129,12 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           <span className="rounded-md bg-blue-900/60 px-2 py-0.5 text-xs text-blue-300">관리자</span>
         )}
         {student.is_independent && (
-          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.independent}`}>
+          <span className={`pill border ${NS_STYLE.independent}`}>
             자주반
           </span>
         )}
         {student.cip_inactive && (
-          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.inactive}`}>
+          <span className={`pill border ${NS_STYLE.inactive}`}>
             CIP 비활성
           </span>
         )}
@@ -155,7 +155,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         <PenaltyStatus total={cumulative} />
 
         <div className="grid gap-3 sm:grid-cols-2 sm:items-start">
-          <section className="rounded-2xl bg-surface p-5">
+          <section className="rounded-3xl bg-surface p-5">
             <p className="text-sm text-neutral-500">총 미납액</p>
             <p
               className={`mt-1 text-3xl font-bold ${owingTotal > 0 ? "text-red-400" : "text-neutral-300"}`}
@@ -165,7 +165,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <p className="mt-2 text-xs text-neutral-500">누적 {won(cumulative)}</p>
           </section>
 
-          <section className="rounded-2xl bg-surface p-5">
+          <section className="rounded-3xl bg-surface p-5">
             <h2 className="font-medium">🌙 오늘 CIP</h2>
             <ul className="mt-2 space-y-1.5">
               {SESSIONS.map((n) => {
@@ -174,7 +174,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   <li key={n} className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-neutral-400">{SESSION_LABEL[n]}</span>
                     <span className="truncate text-xs text-neutral-500">{reason ?? ""}</span>
-                    <span className={`shrink-0 rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
+                    <span className={`shrink-0 pill border ${NS_STYLE[status]}`}>
                       {NS_LABEL[status]}
                     </span>
                   </li>
@@ -187,7 +187,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           </section>
         </div>
 
-        <section className="rounded-2xl bg-surface p-5">
+        <section className="rounded-3xl bg-surface p-5">
           <h2 className="mb-2 font-medium">🧾 입금 신청</h2>
           <ul className="space-y-2">
             {requests.map((r) => (

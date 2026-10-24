@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ReportView, type ReportRow } from "@/components/ReportView";
 import { todayISO } from "@/lib/night-study";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "회계 보고서" };
@@ -36,14 +36,11 @@ export default async function ReportPage({
   return (
     <>
       <div className="no-print">
-        <Link href="/admin" className="text-sm text-neutral-500">
-          ← 대시보드
-        </Link>
-        <h1 className="mb-1 mt-2 text-lg font-semibold">🧾 회계 보고서</h1>
-        <p className="mb-4 text-xs text-neutral-500">
-          기간을 고르고 「PDF로 저장」을 누르면 인쇄 창이 열려요. 대상을 「PDF로 저장」으로
-          바꾸면 파일로 남길 수 있어요.
-        </p>
+        <PageHeader
+          back={{ href: "/admin", label: "대시보드" }}
+          title="회계 보고서"
+          description="기간을 고르고 「PDF로 저장」을 누르면 인쇄 창이 열려요. 대상을 「PDF로 저장」으로 바꾸면 파일로 남길 수 있어요."
+        />
       </div>
 
       <ReportView rows={rows} from={from} to={to} classLabel={classLabel} />

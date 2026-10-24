@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PaymentHistory, type HistoryRow } from "@/components/PaymentHistory";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "입금 처리 내역" };
@@ -47,13 +47,11 @@ export default async function PaymentHistoryPage() {
 
   return (
     <>
-      <Link href="/admin/payments" className="text-sm text-neutral-500">
-        ← 승인 대기
-      </Link>
-      <h1 className="mb-1 mt-2 text-lg font-semibold">🧾 입금 처리 내역</h1>
-      <p className="mb-4 text-xs text-neutral-500">
-        최근 200건까지 보여줘요. 누가 언제 처리했는지 남아 있어요.
-      </p>
+      <PageHeader
+        back={{ href: "/admin/payments", label: "입금 승인" }}
+        title="입금 처리 내역"
+        description="최근 200건까지 보여줘요. 누가 언제 처리했는지 남아 있어요."
+      />
       <PaymentHistory rows={rows} />
     </>
   );

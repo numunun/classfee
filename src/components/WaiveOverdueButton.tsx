@@ -19,7 +19,7 @@ export function WaiveOverdueButton({ fineId }: { fineId: string }) {
       <button
         onClick={() => setOpen(true)}
         title="연체 2배를 원금으로 되돌립니다"
-        className="whitespace-nowrap rounded-lg bg-surface-2 px-3 py-1.5 text-xs font-medium text-neutral-300"
+        className="press whitespace-nowrap rounded-lg bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-neutral-300"
       >
         원금으로
       </button>

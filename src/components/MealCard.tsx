@@ -1,4 +1,6 @@
 import { fetchMeals } from "@/lib/neis";
+import { Moon, Sun, Utensils } from "lucide-react";
+import { CardTitle } from "@/components/CardTitle";
 import { getDinner } from "@/lib/dinner";
 import { todayISO } from "@/lib/night-study";
 
@@ -50,9 +52,9 @@ export async function MealCard({ compact = false }: { compact?: boolean }) {
 
   if (!result.ok && !dinner) {
     return (
-      <section className="rounded-2xl bg-surface p-5">
-        <h2 className="font-medium">🍚 급식</h2>
-        <p className="mt-2 text-sm text-neutral-500">{HINT[result.reason]}</p>
+      <section className="rounded-3xl bg-surface p-5">
+        <CardTitle icon={Utensils}>급식</CardTitle>
+        <p className="mt-3 text-sm text-neutral-500">{HINT[result.reason]}</p>
       </section>
     );
   }
@@ -62,14 +64,16 @@ export async function MealCard({ compact = false }: { compact?: boolean }) {
   const lunches = result.ok ? result.day.meals : [];
 
   return (
-    <section className="rounded-2xl bg-surface p-5">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="font-medium">🍚 {isToday ? "오늘의 급식" : "다음 급식"}</h2>
-        <span className="text-xs text-neutral-500">{label(targetDate)}</span>
-      </div>
+    <section className="rounded-3xl bg-surface p-5">
+      <CardTitle
+        icon={Utensils}
+        right={<span className="shrink-0 text-xs text-neutral-500">{label(targetDate)}</span>}
+      >
+        {isToday ? "오늘의 급식" : "다음 급식"}
+      </CardTitle>
 
       {!isToday && (
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-2 text-xs text-neutral-500">
           오늘은 급식이 없어요. 가장 가까운 날을 보여드릴게요.
         </p>
       )}
@@ -77,9 +81,10 @@ export async function MealCard({ compact = false }: { compact?: boolean }) {
       <div className={compact ? "mt-3 grid gap-4 sm:grid-cols-2" : "mt-3 space-y-4"}>
         {lunches.map((m) => (
           <div key={m.type}>
-            <p className="text-xs font-medium text-neutral-400">
-              🍚 {m.type}
-              {m.calorie && <span className="ml-1.5 text-neutral-600">{m.calorie}</span>}
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
+              <Sun className="size-3.5" aria-hidden />
+              {m.type}
+              {m.calorie && <span className="font-normal text-neutral-600">{m.calorie}</span>}
             </p>
             <Dishes items={m.menu} />
           </div>
@@ -87,7 +92,10 @@ export async function MealCard({ compact = false }: { compact?: boolean }) {
 
         {dinner && (
           <div>
-            <p className="text-xs font-medium text-neutral-400">🌙 석식</p>
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral-400">
+              <Moon className="size-3.5" aria-hidden />
+              석식
+            </p>
             <Dishes items={dinner} />
           </div>
         )}

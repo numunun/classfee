@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Moon } from "lucide-react";
+import { CardTitle } from "@/components/CardTitle";
 import { useRouter } from "next/navigation";
 import { reportNightStudy } from "@/app/student/actions";
 import { useToast } from "@/components/Toast";
@@ -25,20 +27,20 @@ export function NightStudyReport({
   isIndependent: boolean;
 }) {
   return (
-    <section className="rounded-2xl bg-surface p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="font-medium">🌙 오늘 CIP</h2>
-        {isIndependent && (
-          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE.independent}`}>
-            자주반
-          </span>
-        )}
-      </div>
-      <p className="mt-1.5 text-xs text-neutral-500">
+    <section className="rounded-3xl bg-surface p-5">
+      <CardTitle
+        icon={Moon}
+        right={
+          isIndependent && <span className={`pill border ${NS_STYLE.independent}`}>자주반</span>
+        }
+      >
+        오늘 CIP
+      </CardTitle>
+      <p className="mt-2 text-xs text-neutral-500">
         기본은 참석이에요. 빠지는 차수만 사유를 골라주세요.
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-2">
         {SESSIONS.map((n) => {
           const st = states.find((s) => s.session === n);
           return (
@@ -94,11 +96,11 @@ function SessionRow({
   }
 
   return (
-    <div className="rounded-xl border border-line bg-surface-2 p-3.5">
+    <div className="rounded-2xl bg-surface-2 p-3.5">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-neutral-200">{SESSION_LABEL[session]}</span>
+        <span className="text-sm font-semibold text-neutral-200">{SESSION_LABEL[session]}</span>
         <div className="flex items-center gap-2">
-          <span className={`rounded-md border px-2 py-0.5 text-xs ${NS_STYLE[status]}`}>
+          <span className={`pill border ${NS_STYLE[status]}`}>
             {NS_LABEL[status]}
           </span>
           {!locked && (
@@ -106,7 +108,7 @@ function SessionRow({
               type="button"
               onClick={() => setOpen((v) => !v)}
               disabled={pending}
-              className="rounded-lg bg-surface px-2.5 py-1 text-xs text-neutral-300 disabled:opacity-50"
+              className="press rounded-lg bg-surface px-2.5 py-1 text-xs font-medium text-neutral-300 disabled:opacity-50"
             >
               {attending ? "빠져요" : "변경"}
             </button>
@@ -151,7 +153,7 @@ function SessionRow({
               type="button"
               disabled={pending}
               onClick={() => submit(pick, text)}
-              className="h-10 flex-1 rounded-xl bg-white text-sm font-medium text-neutral-900 disabled:opacity-50"
+              className="btn btn-primary press h-10 flex-1 rounded-xl text-sm"
             >
               {pending ? "등록 중…" : "등록"}
             </button>
@@ -160,7 +162,7 @@ function SessionRow({
                 type="button"
                 disabled={pending}
                 onClick={() => submit("present", "")}
-                className="h-10 shrink-0 rounded-xl bg-surface px-4 text-sm text-neutral-300 disabled:opacity-50"
+                className="btn press h-10 shrink-0 rounded-xl bg-surface text-sm font-medium text-neutral-300"
               >
                 참석으로
               </button>

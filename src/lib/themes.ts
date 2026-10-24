@@ -14,17 +14,17 @@ export type Palette = {
 };
 
 export type Theme = {
-  /** 배너에 크게 뜨는 문구 */
+  /** 카드 위쪽에 작게 들어가는 팀·소속 이름 */
   team: string;
-  /** 작게 붙는 한 줄 */
+  /** 이름 옆에 붙는 한 줄 */
   tagline: string;
-  /** 강조색 (글로우, 포커스 테두리) */
+  /** 강조색 (버튼, 포커스 테두리, 카드 아래 띠) */
   accent: string;
-  /** 배너 그라디언트의 짙은 쪽 */
+  /** 멤버십 카드 바탕색 */
   deep: string;
-  /** 배너 이모지 (로고 파일이 없을 때 대체) */
+  /** 로고 파일이 없을 때 대신 쓸 이모지 */
   emoji: string;
-  /** 배너 아래 띠에 들어갈 문구 */
+  /** 카드 맨 아래 작은 글씨 */
   motto: string;
   /**
    * 본인 화면에서만 이름 대신 보여줄 별명.
@@ -33,43 +33,42 @@ export type Theme = {
   nickname?: string;
   /** public/ 아래 로고 파일 경로. 없으면 이모지만 */
   logo?: string;
-  /** 워터마크 가로 크기. 기본 min(88vw,620px) */
-  watermarkSize?: string;
-  /** 워터마크를 화면 중앙에서 아래로 얼마나 내릴지. 기본 10vh */
-  watermarkShift?: string;
   /** 밝은 배경이면 "light". 글자색을 통째로 반전시킨다. */
   mode?: "dark" | "light";
-  /** 이름/띠 그라디언트에 순환시킬 색. 순서대로 흐른다. */
+  /** 카드를 기울일 때 스치는 빛에 섞을 팀 색들 */
   ramp: string[];
   /** 페이지 전체 색. 생략하면 기본값 유지 */
   palette?: Palette;
-  /** 배경 워터마크용 이미지. 없으면 logo 를 쓴다. */
-  backdropImage?: string;
-  /** 배경 이미지 투명도. 인물 사진은 로고보다 낮게 (기본 0.05) */
-  backdropOpacity?: number;
-  /** 배경 이미지 위치. 인물은 한쪽으로 빼는 게 낫다 (기본 center) */
-  backdropPosition?: "center" | "right" | "left";
+  /** 카드 오른쪽에 깔리는 그림 (인물 사진·엠블럼). 왼쪽으로 갈수록 흐려진다 */
+  cardImage?: string;
+  /**
+   * 그림을 카드 어디에 맞출지.
+   *  - "bottom"(기본): 아래에 붙인다. 허리 아래까지 나온 전신 사진용
+   *  - "top": 위에 붙여 머리가 잘리지 않게 하고, 오른쪽 위 로고 칸을 비켜 둔다. 상반신 사진용
+   */
+  cardImageAlign?: "bottom" | "top";
 };
 
 export const THEMES: Record<number, Theme> = {
-  // 황성재 — 한화 이글스 (주황빛 도는 밝은 테마)
+  // 황성재 — 한화 이글스. 흰 바탕 + 한화 오렌지 + 검은 카드, 세 가지 색만 쓴다.
+  // 예전 모래빛 바탕은 베이지인지 분홍인지 애매하고, 남색 카드에 주황이 섞이면 갈색으로 탁해졌다.
   20935: {
     team: "Hanwha Eagles",
     tagline: "최강한화",
-    accent: "#E8440A",
-    deep: "#0B1B2B",
+    accent: "#F25F00",     // 한화 오렌지. 흰 글자가 읽히도록 공식색(#FF6600)보다 한 톤 진하게
+    deep: "#141414",       // 카드는 검정. 주황이 섞여도 탁해지지 않는다
     emoji: "🦅",
     motto: "DAEJEON · HANWHA EAGLES · 1986 · 최강한화",
     logo: "/theme/hanwha.png",
-    ramp: ["#0B1B2B", "#8A2600", "#FC4E00", "#FF9A4D", "#FFE3CC", "#FF8A3D", "#E03F00", "#3A1200"],
+    cardImage: "/theme/moon-dongju.webp",
+    cardImageAlign: "top",
+    ramp: ["#F25F00", "#FF8A33", "#FFFFFF", "#FF6600"],
     mode: "light",
-    watermarkSize: "min(80vw, 560px)",
-    watermarkShift: "-1vh",
     palette: {
-      ink: "#F3E2D5",      // 따뜻한 모래빛. 흰색이 아니라 확실히 색이 보인다
-      surface: "#FFFBF7",  // 카드는 배경보다 밝게 띄운다
-      surface2: "#F6E5D8",
-      line: "#E3C4AC",
+      ink: "#F4F2EF",      // 거의 흰색에 아주 살짝 따뜻한 회색
+      surface: "#FFFFFF",
+      surface2: "#F2EEEA",
+      line: "#E6E0DA",
     },
   },
   // 20904
@@ -80,12 +79,11 @@ export const THEMES: Record<number, Theme> = {
     deep: "#2B2118",
     emoji: "🌻",
     motto: "OWL ROCK · GIMHAE · 2009 · 0523",
-    logo: "/theme/banner-20904.png",
-    backdropImage: "/theme/backdrop-20904.png",
+    // 엠블럼은 로고 칸에, 인물 사진은 카드 오른쪽 그림으로
+    logo: "/theme/backdrop-20904.png",
+    cardImage: "/theme/banner-20904.png",
     ramp: ["#3A2A14", "#8A6A20", "#F5A623", "#FFE0A0", "#FFFFFF", "#F5A623", "#5A4318"],
     mode: "dark",
-    watermarkSize: "min(80vw, 580px)",
-    watermarkShift: "-1vh",
     palette: {
       ink: "#0B0A08",
       surface: "#17150F",
@@ -104,8 +102,6 @@ export const THEMES: Record<number, Theme> = {
     logo: "/theme/gen.svg",
     ramp: ["#3D3320", "#8A7846", "#CFB887", "#F0E4C8", "#FFFFFF", "#CFB887", "#5C4E2E"],
     mode: "dark",
-    watermarkSize: "min(78vw, 560px)",
-    watermarkShift: "-1vh",
     palette: {
       ink: "#0A0A0B",
       surface: "#161614",
@@ -125,8 +121,6 @@ export const THEMES: Record<number, Theme> = {
     nickname: "쿠 네",
     ramp: ["#04301F", "#00A86B", "#00FFA3", "#B9FFE2", "#FFFFFF", "#00FFA3", "#036B45"],
     mode: "dark",
-    watermarkSize: "min(78vw, 540px)",
-    watermarkShift: "-1vh",
     palette: {
       ink: "#080A09",
       surface: "#121614",
@@ -143,13 +137,9 @@ export const THEMES: Record<number, Theme> = {
     emoji: "🥊",
     motto: "TOPURIA SAUSAGE · LIGHTWEIGHT · UFC · 28-6",
     logo: "/theme/ufc.svg",
-    backdropImage: "/theme/paddy.png",
-    backdropOpacity: 0.15,
-    backdropPosition: "right",
+    cardImage: "/theme/paddy.png",
     ramp: ["#2A0505", "#8A0A0A", "#D20A0A", "#FF5252", "#FFFFFF", "#D20A0A", "#4A0808"],
     mode: "dark",
-    watermarkSize: "min(80vw, 580px)",
-    watermarkShift: "-1vh",
     palette: {
       ink: "#070707",
       surface: "#141414",
@@ -168,8 +158,6 @@ export const THEMES: Record<number, Theme> = {
     logo: "/theme/T1.png",
     ramp: ["#3A0009", "#9E0020", "#E2012D", "#FF3E60", "#FFD5DD", "#E2012D", "#7A0018"],
     mode: "dark",
-    watermarkSize: "min(82vw, 600px)",
-    watermarkShift: "-1vh",
     palette: {
       ink: "#08080A",
       surface: "#141417",
@@ -227,80 +215,62 @@ input,select,textarea{color:#1B1B1F;}
 `;
 
 /**
- * 이름·모토 띠·워터마크 애니메이션.
- * 그라디언트가 한 바퀴 돌 때 끊겨 보이지 않도록 색 배열 끝에 첫 색을 다시 붙인다.
- * (마지막 색과 첫 색이 다르면 반복 지점에서 색이 뚝 끊긴다)
+ * 멤버십 카드의 빛 효과.
+ *  - tm-holo: 팀 색이 섞인 홀로그램 띠. 카드를 기울이거나 손가락·마우스를 올리면
+ *    MembershipCard 가 넣는 --mx/--my 를 따라 움직인다.
+ *  - tm-glint: 가만히 있어도 몇 초에 한 번 흰 빛이 카드 위를 스친다.
+ * 움직임 줄이기 설정이면 둘 다 멈춘다.
  */
-function motionCss(theme: Theme): string {
-  const loop = [...theme.ramp, theme.ramp[0]].join(",");
-
+function cardCss(theme: Theme): string {
+  const holo = theme.ramp.map((c) => `${c}55`).join(",");
   return `
-@keyframes tm-sweep{from{background-position:0% 50%}to{background-position:300% 50%}}
-@keyframes tm-glow{
-  from{filter:drop-shadow(0 0 2px rgba(255,255,255,.7)) drop-shadow(0 0 6px ${theme.accent}66)}
-  to{filter:drop-shadow(0 0 3px rgba(255,255,255,.95)) drop-shadow(0 0 12px ${theme.accent}aa)}
+@keyframes tm-glint{0%,72%{transform:translateX(-130%)}100%{transform:translateX(130%)}}
+.tm-holo{
+  background:linear-gradient(115deg,transparent 18%,${holo},transparent 82%);
+  background-size:260% 260%;
+  background-position:calc(var(--mx,.5)*100%) calc(var(--my,.5)*100%);
+  mix-blend-mode:screen;
+  opacity:.28;
+  transition:background-position .25s ease-out;
 }
-@keyframes tm-breathe{from{opacity:.4;transform:scale(.98)}to{opacity:.7;transform:scale(1.02)}}
-
-.tm-name{
-  display:inline-block;
-  font-weight:900;
-  letter-spacing:.01em;
-  color:transparent;
-  background:linear-gradient(100deg,${loop});
-  background-size:300% 100%;
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:tm-sweep 4.5s linear infinite, tm-glow 2.2s ease-in-out infinite alternate;
+.tm-glint{
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.18) 50%,transparent 62%);
+  animation:tm-glint 7s ease-in-out infinite;
 }
-
-.tm-motto{
-  background:linear-gradient(100deg,${loop});
-  background-size:300% 100%;
-  animation:tm-sweep 6s linear infinite;
-}
-
-.tm-watermark{animation:tm-breathe 3.6s ease-in-out infinite alternate;}
-
 @media (prefers-reduced-motion: reduce){
-  .tm-name,.tm-motto,.tm-watermark{animation:none !important;}
+  .tm-glint{animation:none;opacity:0;}
+  .tm-holo{transition:none;}
 }
 `;
 }
 
 /**
- * 카드·버튼을 반투명 + 흐림(유리 질감)으로 만든다.
- * 뒤 워터마크가 비치되 흐려져서 글자 가독성이 유지되고, 테두리로 경계가 분명해진다.
+ * 카드·버튼 바탕.
  * border 대신 box-shadow 로 선을 그려 기존 테두리 색과 충돌하지 않게 한다.
  *
- * 테마가 없으면 뒤에 비칠 배경이 없으므로 흐림은 빼고 색만 같게 둔다.
- * 단색 배경을 흐려 봐야 같은 색이라 보이는 건 똑같고, 카드마다 GPU 만 쓴다 (저사양 폰에서 스크롤이 끊김).
- * 미리보기에서 앞서 들어온 테마의 흐림이 남지 않도록 none 을 명시한다.
+ * 예전에는 배경 워터마크가 비치도록 반투명 + 흐림(유리 질감)이었지만,
+ * 워터마크를 없앤 뒤로는 흐릴 대상이 없어 흐림은 쓰지 않는다 (카드마다 GPU 만 쓰고 스크롤이 끊김).
+ * 테마 화면은 바탕의 은은한 팀 색이 아주 살짝 비치도록 거의 불투명하게 둔다.
+ * 미리보기에서 앞서 들어온 테마 값이 남지 않도록 backdrop-filter:none 을 명시한다.
  */
 function glassCss(themed: boolean): string {
-  // 테마 카드는 워터마크가 너무 비치면 로고의 짙은 부분이 글자 밑에 얼룩처럼 남는다
-  const alpha = themed ? ".4" : ".25";
-  const filter = themed ? "blur(18px) saturate(1.4)" : "none";
+  const alpha = themed ? ".92" : "1";
+  // 기본 화면은 진한 테두리 대신 아주 옅은 흰 선으로 카드 경계만 살린다
+  const ring = themed ? "rgb(var(--c-line))" : "rgb(255 255 255 / .06)";
   return `
 .bg-surface{
   background-color:rgb(var(--c-surface)/${alpha}) !important;
-  -webkit-backdrop-filter:${filter};
-  backdrop-filter:${filter};
-  box-shadow:0 0 0 1px rgb(var(--c-line)), 0 6px 20px rgba(0,0,0,.06);
-}
-.bg-surface-2{
-  background-color:rgb(var(--c-surface-2)/.75) !important;
-  box-shadow:0 0 0 1px rgb(var(--c-line));
-}
-/* 흐림이 겹치면 크롬이 화면 일부를 못 그린다. 카드 안쪽 카드는 흐림 없이 */
-.bg-surface .bg-surface{
   -webkit-backdrop-filter:none;
   backdrop-filter:none;
+  box-shadow:0 0 0 1px ${ring}, 0 6px 20px rgba(0,0,0,.06);
+}
+.bg-surface-2{
+  background-color:rgb(var(--c-surface-2)) !important;
+  box-shadow:0 0 0 1px ${ring};
 }
 /* 버튼은 눌리는 요소이므로 경계를 조금 더 또렷하게 */
 button.bg-surface-2,a.bg-surface-2{
-  box-shadow:0 0 0 1px rgb(var(--c-line)), 0 8px 26px rgba(0,0,0,.10);
+  box-shadow:0 0 0 1px ${ring}, 0 8px 26px rgba(0,0,0,.10);
 }
 `;
 }
@@ -348,8 +318,8 @@ input,select,textarea{color:#F5F5F5;}
 /** 테마가 없을 때 되돌릴 기본값. globals.css 의 :root 와 같아야 한다. */
 const DEFAULT_ROOT =
   ":root{color-scheme:dark;" +
-  "--c-ink:14 14 16;--c-surface:22 22 24;--c-surface-2:31 31 35;" +
-  "--c-line:42 42 46;--c-accent:59 130 246;}";
+  "--c-ink:9 9 11;--c-surface:23 23 26;--c-surface-2:33 33 37;" +
+  "--c-line:44 44 49;--c-accent:49 130 246;}";
 
 /**
  * :root 에 넣을 CSS 문자열.
@@ -370,5 +340,5 @@ export function themeCss(theme: Theme | null): string {
   }
   const root = `:root{color-scheme:${theme.mode === "light" ? "light" : "dark"};${vars.join("")}}`;
   const base = theme.mode === "light" ? root + LIGHT_OVERRIDES : root + DARK_OVERRIDES;
-  return base + glassCss(true) + motionCss(theme);
+  return base + glassCss(true) + cardCss(theme);
 }

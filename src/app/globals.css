@@ -5,20 +5,56 @@
 :root {
   color-scheme: dark;
 
-  /* 기본 테마. 개인 테마가 있으면 페이지에서 이 값을 덮어쓴다. */
-  --c-ink: 14 14 16;
-  --c-surface: 22 22 24;
-  --c-surface-2: 31 31 35;
-  --c-line: 42 42 46;
-  --c-accent: 59 130 246;
+  /* 기본 테마. 개인 테마가 있으면 페이지에서 이 값을 덮어쓴다.
+     themes.ts 의 DEFAULT_ROOT 와 값이 같아야 한다. */
+  --c-ink: 9 9 11;
+  --c-surface: 23 23 26;
+  --c-surface-2: 33 33 37;
+  --c-line: 44 44 49;
+  --c-accent: 49 130 246;
 }
 
 body {
   font-family: "Pretendard", system-ui, sans-serif;
+  /* Pretendard 는 기본 자간이 살짝 넓다. 조금 좁히면 한글이 단단해 보인다. */
+  letter-spacing: -0.01em;
   /* 한글은 기본값이면 글자 단위로 끊겨 "서비\n스" 처럼 단어가 쪼개진다. 어절 단위로 줄바꿈.
      이메일처럼 공백 없는 긴 문자열은 칸을 넘치지 않게 필요할 때만 끊는다. */
   word-break: keep-all;
   overflow-wrap: break-word;
+  -webkit-tap-highlight-color: transparent;
+}
+h1, h2, h3 { letter-spacing: -0.02em; }
+
+@layer components {
+  /* 버튼 공통. 색은 bg-* 클래스나 btn-primary 로 따로 준다. */
+  .btn {
+    @apply inline-flex h-12 items-center justify-center gap-2 rounded-2xl px-4 text-[0.9375rem] font-semibold transition disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply h-9 rounded-xl px-3 text-sm;
+  }
+  /* 강조 버튼. 글자색을 클래스(text-white)로 두면 밝은 테마의 색 반전 규칙에 걸리므로 여기서 고정한다. */
+  .btn-primary {
+    background-color: rgb(var(--c-accent));
+    color: #fff;
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+
+  /* 눌렀을 때 살짝 들어가는 느낌 */
+  .press { @apply transition active:scale-[0.97]; }
+
+  /* 상태 배지 */
+  .pill {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold;
+  }
+
+  /* 섹션 머리 아이콘 칸 */
+  .icon-tile {
+    @apply grid size-8 shrink-0 place-items-center rounded-xl;
+    background-color: rgb(var(--c-accent) / 0.14);
+    color: rgb(var(--c-accent));
+  }
 }
 
 /* 키보드로 이동할 때만 포커스 테두리를 보인다 (마우스·터치 클릭에는 안 뜸) */
@@ -33,19 +69,24 @@ summary:focus-visible {
 input, select, textarea {
   background-color: rgb(var(--c-surface-2));
   border: 1px solid rgb(var(--c-line));
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   color: #f5f5f5;
-  padding: 0.7rem 0.9rem;
+  padding: 0.7rem 0.95rem;
   width: 100%;
   height: 2.875rem;          /* 46px — 버튼과 높이를 맞추기 위해 고정 */
   outline: none;
+  transition: border-color .15s, box-shadow .15s;
 }
 textarea { height: auto; }
-input[type="checkbox"] { height: auto; }
-input:focus, select:focus, textarea:focus { border-color: rgb(var(--c-accent)); }
+input[type="checkbox"] { height: auto; accent-color: rgb(var(--c-accent)); }
+input::placeholder, textarea::placeholder { color: #6b6b73; }
+input:focus, select:focus, textarea:focus {
+  border-color: rgb(var(--c-accent));
+  box-shadow: 0 0 0 3px rgb(var(--c-accent) / 0.22);
+}
 
 /* label 은 기본이 inline 이라 좁은 입력 옆에 붙어버린다. 항상 줄바꿈. */
-label { display: block; font-size: 0.875rem; color: #a3a3a3; }
+label { display: block; font-size: 0.8125rem; font-weight: 500; color: #a3a3a3; }
 
 /* 숫자 입력의 네이티브 스피너 제거 */
 input[type="number"]::-webkit-outer-spin-button,
@@ -66,8 +107,7 @@ input[type="number"] { -moz-appearance: textfield; }
     display: none !important;
   }
 
-  /* 테마 배경(워터마크·그라디언트)은 인쇄에서 제외 */
-  .tm-watermark,
+  /* 테마 배경 그라디언트 등 장식은 인쇄에서 제외 */
   [aria-hidden="true"] {
     display: none !important;
   }

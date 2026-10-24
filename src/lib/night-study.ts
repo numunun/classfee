@@ -32,13 +32,14 @@ export const NS_ICON: Record<NightStatus, string> = {
 };
 
 export const NS_STYLE: Record<NightStatus, string> = {
-  present: "bg-green-950 text-green-300 border-green-800/70",
-  independent: "bg-emerald-950 text-emerald-300 border-emerald-700/70",
-  academy: "bg-amber-950 text-amber-300 border-amber-800/70",
-  hospital: "bg-rose-950 text-rose-300 border-rose-800/70",
-  special: "bg-violet-950 text-violet-300 border-violet-800/70",
-  other: "bg-neutral-800 text-neutral-300 border-neutral-600/70",
-  inactive: "bg-neutral-900 text-neutral-600 border-neutral-800",
+  // 반투명 틴트라 어두운·밝은 테마 모두에서 그대로 쓸 수 있다
+  present: "bg-green-500/15 text-green-400 border-green-500/25",
+  independent: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+  academy: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+  hospital: "bg-rose-500/15 text-rose-400 border-rose-500/25",
+  special: "bg-violet-500/15 text-violet-400 border-violet-500/25",
+  other: "bg-neutral-500/15 text-neutral-300 border-neutral-500/25",
+  inactive: "bg-neutral-500/10 text-neutral-500 border-neutral-500/15",
 };
 
 export const REASON_PLACEHOLDER: Record<ReasonType, string> = {

@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StudentManager } from "@/components/StudentManager";
 import type { Student } from "@/lib/types";
+import { PageHeader } from "@/components/PageHeader";
 
 export default async function StudentsPage() {
   const supabase = createClient();
@@ -12,8 +12,7 @@ export default async function StudentsPage() {
 
   return (
     <>
-      <Link href="/admin" className="text-sm text-neutral-500">← 대시보드</Link>
-      <h1 className="mb-4 mt-2 text-lg font-semibold">학생 관리</h1>
+      <PageHeader back={{ href: "/admin", label: "대시보드" }} title="학생 관리" />
       <StudentManager students={(data ?? []) as Student[]} />
     </>
   );

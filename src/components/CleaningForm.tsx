@@ -44,7 +44,7 @@ export function CleaningForm({
       }}
       className="space-y-4"
     >
-      <div className="rounded-2xl bg-surface p-5">
+      <div className="rounded-3xl bg-surface p-5">
         {/* 모바일 반 칸에서는 날짜 글자가 달력 아이콘과 겹친다 */}
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
@@ -88,7 +88,7 @@ export function CleaningForm({
 
       <button
         disabled={pending}
-        className="w-full rounded-xl bg-white py-3 font-medium text-neutral-900 disabled:opacity-50"
+        className="btn btn-primary press w-full"
       >
         {pending ? "저장 중…" : `저장하기 (불참 ${absent.size}명)`}
       </button>
