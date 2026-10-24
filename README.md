@@ -16,7 +16,7 @@ Started as a Google Sheet for tracking class fines. Now it runs the room.
 
 ![RLS](https://img.shields.io/badge/RLS-enabled-3FCF8E?style=flat-square)
 ![Region](https://img.shields.io/badge/region-icn1%20(Seoul)-black?style=flat-square)
-![Migrations](https://img.shields.io/badge/migrations-29-blue?style=flat-square)
+![Migrations](https://img.shields.io/badge/migrations-30-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
 </div>
@@ -121,7 +121,7 @@ npm run dev
 
 <br/>
 
-**1. Run the migrations in order** — `supabase/migrations/` 0001 → 0029.
+**1. Run the migrations in order** — `supabase/migrations/` 0001 → 0030.
 Out-of-order runs fail; later files depend on earlier functions.
 
 **2. Seed the first admin.** RLS blocks non-admins from editing the roster, so the
