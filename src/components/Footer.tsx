@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 // GitHub 옥토캣 마크.
 // 조각을 join(" ") 으로 잇는다 — 문자열을 그냥 + 로 붙이면
 // 경계에서 공백이 사라져 좌표가 어긋난다 ("2.2" + "0" -> "2.20").
@@ -28,10 +32,15 @@ function GithubIcon() {
 }
 
 export function Footer() {
+  const pathname = usePathname();
   const linkClass = "flex items-center gap-1.5 text-neutral-400 transition hover:text-neutral-200";
 
+  // 전자칠판은 화면 한 장(100dvh)에 딱 맞춰 그린다. 푸터가 붙으면 그만큼 스크롤이 생긴다.
+  if (pathname?.startsWith("/board")) return null;
+
   return (
-    <footer className="mt-10 flex items-center justify-center gap-2 pb-8 text-xs text-neutral-500">
+    // relative z-10: 테마 배경(fixed z-0)의 아래쪽 어둠 그라디언트에 덮여 안 보이던 문제
+    <footer className="relative z-10 mt-10 flex items-center justify-center gap-2 pb-8 text-xs text-neutral-500">
       <span>made by 황성재</span>
       <span className="text-neutral-700">·</span>
       <a href="https://github.com/numunun/classfee" target="_blank" rel="noreferrer" aria-label="GitHub 저장소 열기" className={linkClass}>

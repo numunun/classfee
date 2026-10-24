@@ -63,7 +63,7 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
           return (
             <li
               key={f.id}
-              className={`relative flex items-center gap-3 border-t border-line py-3 pl-4 pr-4 first:border-t-0 ${
+              className={`relative flex items-center gap-2.5 border-t border-line py-3 pl-4 pr-3 first:border-t-0 sm:gap-3 sm:pr-4 ${
                 done ? "opacity-45" : ""
               }`}
             >
@@ -96,23 +96,27 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
                 </p>
               </div>
 
-              <span className="w-[4.5rem] shrink-0 text-center">
-                {cancelled ? (
-                  <span className="text-xs text-neutral-500">취소됨</span>
-                ) : (
-                  <StatusBadge status={f.status} />
-                )}
-              </span>
+              {/* 모바일에서는 상태와 금액을 위아래로 쌓는다.
+                  가로로 늘어놓으면 고정 폭 칸들에 밀려 이름이 사라지고 버튼이 화면 밖으로 나간다. */}
+              <div className="flex shrink-0 flex-col-reverse items-end gap-1 sm:flex-row sm:items-center sm:gap-0">
+                <span className="sm:w-[4.5rem] sm:text-center">
+                  {cancelled ? (
+                    <span className="text-xs text-neutral-500">취소됨</span>
+                  ) : (
+                    <StatusBadge status={f.status} />
+                  )}
+                </span>
 
-              <span
-                className={`w-[4.5rem] shrink-0 text-right font-semibold tabular-nums ${
-                  done ? "line-through" : ""
-                }`}
-              >
-                {won(payable(f))}
-              </span>
+                <span
+                  className={`text-right font-semibold tabular-nums sm:w-[4.5rem] ${
+                    done ? "line-through" : ""
+                  }`}
+                >
+                  {won(payable(f))}
+                </span>
+              </div>
 
-              <span className="flex w-[7.5rem] shrink-0 justify-end gap-1.5">
+              <span className="flex shrink-0 justify-end gap-1.5 sm:w-[7.5rem]">
                 {/* 완납·승인 대기 건은 면제하면 미납으로 되돌아가므로 버튼을 숨긴다 */}
                 {!cancelled &&
                   (f.status === "unpaid" || f.status === "doubled") &&

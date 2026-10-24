@@ -157,7 +157,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         <div className="grid gap-3 sm:grid-cols-2 sm:items-start">
           <section className="rounded-2xl bg-surface p-5">
             <p className="text-sm text-neutral-500">총 미납액</p>
-            <p className="mt-1 text-3xl font-bold text-red-400">{won(owingTotal)}</p>
+            <p
+              className={`mt-1 text-3xl font-bold ${owingTotal > 0 ? "text-red-400" : "text-neutral-300"}`}
+            >
+              {won(owingTotal)}
+            </p>
             <p className="mt-2 text-xs text-neutral-500">누적 {won(cumulative)}</p>
           </section>
 

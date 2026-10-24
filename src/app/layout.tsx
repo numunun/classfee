@@ -12,10 +12,15 @@ export const metadata: Metadata = {
     template: "%s · 학급 관리",
   },
   description: "CIP 출결 · 급식 · 학급 벌금을 한곳에서",
-    appleWebApp: { capable: true, title: "학급 관리", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "학급 관리", statusBarStyle: "black-translucent" },
 };
 
-export const viewport: Viewport = { themeColor: "#0e0e10" };
+// 브라우저 주소창·상태바 색을 페이지 배경과 맞춘다. 밝은 테마에서 위쪽만 검게 뜨지 않도록.
+export async function generateViewport(): Promise<Viewport> {
+  const me = await getCurrentStudent().catch(() => null);
+  const theme = getTheme(me?.student_number);
+  return { themeColor: theme?.palette?.ink ?? "#0e0e10" };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // 테마 색을 레이아웃에서 넣는다. 페이지가 넣으면 로딩 화면(loading.tsx)이
@@ -34,9 +39,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
       </head>
-      <body className="bg-ink text-neutral-100 antialiased">
+      {/* 내용이 짧은 화면에서도 푸터가 화면 맨 아래에 붙도록 세로 flex 로 둔다 */}
+      <body className="flex min-h-dvh flex-col bg-ink text-neutral-100 antialiased">
         <ToastProvider>
-          {children}
+          <div className="flex-1">{children}</div>
           <Footer />
           <RegisterSW />
         </ToastProvider>

@@ -108,7 +108,7 @@ export function ReportView({
           </p>
         </header>
 
-        <section className="mb-6 grid grid-cols-3 gap-3">
+        <section className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
           <Box label="총 부과액" value={won(total)} />
           <Box label="납부 완료액" value={won(paid)} />
           <Box label="미납액" value={won(unpaid)} />
@@ -197,9 +197,10 @@ export function ReportView({
 
 function Box({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-line bg-surface-2 p-3">
+    <div className="min-w-0 rounded-xl border border-line bg-surface-2 p-2.5 sm:p-3">
       <p className="text-xs text-neutral-500">{label}</p>
-      <p className="mt-1 text-lg font-bold tabular-nums">{value}</p>
+      {/* 모바일 세 칸에 ₩20,000 이 꽉 차서 테두리에 닿으므로 작게. 금액은 중간에서 끊지 않는다 */}
+      <p className="mt-1 whitespace-nowrap text-sm font-bold tabular-nums sm:text-lg">{value}</p>
     </div>
   );
 }

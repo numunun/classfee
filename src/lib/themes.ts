@@ -273,15 +273,22 @@ function motionCss(theme: Theme): string {
  * 카드·버튼을 반투명 + 흐림(유리 질감)으로 만든다.
  * 뒤 워터마크가 비치되 흐려져서 글자 가독성이 유지되고, 테두리로 경계가 분명해진다.
  * border 대신 box-shadow 로 선을 그려 기존 테두리 색과 충돌하지 않게 한다.
+ *
+ * 테마가 없으면 뒤에 비칠 배경이 없으므로 흐림은 빼고 색만 같게 둔다.
+ * 단색 배경을 흐려 봐야 같은 색이라 보이는 건 똑같고, 카드마다 GPU 만 쓴다 (저사양 폰에서 스크롤이 끊김).
+ * 미리보기에서 앞서 들어온 테마의 흐림이 남지 않도록 none 을 명시한다.
  */
-const GLASS = `
+function glassCss(themed: boolean): string {
+  // 테마 카드는 워터마크가 너무 비치면 로고의 짙은 부분이 글자 밑에 얼룩처럼 남는다
+  const alpha = themed ? ".4" : ".25";
+  const filter = themed ? "blur(18px) saturate(1.4)" : "none";
+  return `
 .bg-surface{
-  background-color:rgb(var(--c-surface)/.25) !important;
-  -webkit-backdrop-filter:blur(18px) saturate(1.4);
-  backdrop-filter:blur(18px) saturate(1.4);
+  background-color:rgb(var(--c-surface)/${alpha}) !important;
+  -webkit-backdrop-filter:${filter};
+  backdrop-filter:${filter};
   box-shadow:0 0 0 1px rgb(var(--c-line)), 0 6px 20px rgba(0,0,0,.06);
 }
-/* 기존 .bg-surface-2 { ... } 블록을 이걸로 교체 */
 .bg-surface-2{
   background-color:rgb(var(--c-surface-2)/.75) !important;
   box-shadow:0 0 0 1px rgb(var(--c-line));
@@ -296,6 +303,7 @@ button.bg-surface-2,a.bg-surface-2{
   box-shadow:0 0 0 1px rgb(var(--c-line)), 0 8px 26px rgba(0,0,0,.10);
 }
 `;
+}
 
 /**
  * 밝은 테마가 남긴 색 반전을 되돌린다.
@@ -349,7 +357,7 @@ const DEFAULT_ROOT =
  * 빈 문자열을 주면 앞 화면(관리자 본인 테마)의 값이 남아 미리보기가 오염된다.
  */
 export function themeCss(theme: Theme | null): string {
-    if (!theme) return DEFAULT_ROOT + DARK_OVERRIDES + GLASS;
+  if (!theme) return DEFAULT_ROOT + DARK_OVERRIDES + glassCss(false);
 
   const vars = [`--c-accent:${rgbTriplet(theme.accent)};`];
   if (theme.palette) {
@@ -362,5 +370,5 @@ export function themeCss(theme: Theme | null): string {
   }
   const root = `:root{color-scheme:${theme.mode === "light" ? "light" : "dark"};${vars.join("")}}`;
   const base = theme.mode === "light" ? root + LIGHT_OVERRIDES : root + DARK_OVERRIDES;
-  return base + GLASS + motionCss(theme);
+  return base + glassCss(true) + motionCss(theme);
 }

@@ -45,7 +45,8 @@ export function CleaningForm({
       className="space-y-4"
     >
       <div className="rounded-2xl bg-surface p-5">
-        <div className="grid grid-cols-2 gap-3">
+        {/* 모바일 반 칸에서는 날짜 글자가 달력 아이콘과 겹친다 */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label>날짜</label>
             <input type="date" name="date" defaultValue={today()} className="mt-1.5" />

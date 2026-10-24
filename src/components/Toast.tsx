@@ -25,7 +25,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+      {/* 아이폰 홈 화면 앱에서 하단 홈 바에 가리지 않게 safe-area 만큼 띄운다 */}
+      <div
+        className="pointer-events-none fixed right-4 z-[100] flex flex-col gap-2"
+        style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      >
         {toasts.map((t) => (
           // 색은 전부 인라인으로 고정한다. 유틸리티 클래스를 쓰면
           // 밝은 테마의 색 반전 규칙에 걸려 검은 배경에 검은 글자가 된다.

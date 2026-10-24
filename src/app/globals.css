@@ -13,7 +13,21 @@
   --c-accent: 59 130 246;
 }
 
-body { font-family: "Pretendard", system-ui, sans-serif; }
+body {
+  font-family: "Pretendard", system-ui, sans-serif;
+  /* 한글은 기본값이면 글자 단위로 끊겨 "서비\n스" 처럼 단어가 쪼개진다. 어절 단위로 줄바꿈.
+     이메일처럼 공백 없는 긴 문자열은 칸을 넘치지 않게 필요할 때만 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 키보드로 이동할 때만 포커스 테두리를 보인다 (마우스·터치 클릭에는 안 뜸) */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid rgb(var(--c-accent));
+  outline-offset: 2px;
+}
 
 /* 입력 요소 기본 스타일 */
 input, select, textarea {

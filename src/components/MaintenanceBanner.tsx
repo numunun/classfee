@@ -12,8 +12,13 @@ export async function MaintenanceBanner() {
 
   return (
     <div
-      className="sticky top-0 z-40 px-4 py-2.5 text-center"
-      style={{ background: "#B45309", color: "#fff" }}
+      className="sticky top-0 z-40 px-4 pb-2.5 text-center"
+      // 홈 화면 앱(상태바 투명)에서 노치·상태바 밑으로 글자가 들어가지 않게 한다
+      style={{
+        background: "#B45309",
+        color: "#fff",
+        paddingTop: "calc(0.625rem + env(safe-area-inset-top))",
+      }}
     >
       <p className="text-sm font-semibold">🛠 서비스 점검 중</p>
       <RichText text={text} className="mt-0.5 text-xs" />

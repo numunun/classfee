@@ -140,7 +140,10 @@ export async function StudentView({
   const theme = getTheme(me.student_number);
 
   const selectable = live.filter((f) => f.status === "unpaid" || f.status === "doubled");
-  const nextDue = selectable.map((f) => f.due_date).sort().at(0);
+  // 연체 2배는 지각 누진제 시행일 이전에 부과된 건에만 붙는다 (0023)
+  const hasDoublable = selectable.some(
+    (f) => !s.late_policy_start || f.occurred_date < s.late_policy_start
+  );
 
   return (
     <>
@@ -270,10 +273,16 @@ export async function StudentView({
       <div className="mt-3 grid gap-3 sm:grid-cols-2 sm:items-start">
         <section className="rounded-2xl bg-surface p-5">
           <p className="text-sm text-neutral-500">총 미납액</p>
-          <p className="mt-1 text-3xl font-bold text-red-400">{won(owingTotal)}</p>
-          {nextDue && s.double_fine_enabled && (
+          <p
+            className={`mt-1 text-3xl font-bold ${owingTotal > 0 ? "text-red-400" : "text-neutral-300"}`}
+          >
+            {won(owingTotal)}
+          </p>
+          {hasDoublable && s.double_fine_enabled && (
             <p className="mt-2 text-sm text-neutral-400">
-              기한을 넘긴 건은 7일마다 2배가 돼요
+              {s.late_policy_start
+                ? `${ko(s.late_policy_start)} 전에 부과된 건은 기한을 넘기면 2배가 돼요`
+                : "기한을 넘긴 건은 2배가 돼요"}
             </p>
           )}
         </section>

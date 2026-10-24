@@ -70,7 +70,8 @@ export function ThemeBanner({
 
       {/* 하단 모토 띠 — 여기에 그라디언트가 흐른다 */}
       <div
-        className="tm-motto px-5 py-2 text-center text-[0.65rem] font-extrabold uppercase tracking-[0.22em]"
+        // 모바일에서는 자간을 줄여 긴 모토가 두 줄로 넘어가는 일을 줄인다
+        className="tm-motto text-balance px-4 py-2 text-center text-[0.65rem] font-extrabold uppercase tracking-[0.12em] sm:px-5 sm:tracking-[0.22em]"
         style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,.55)" }}
       >
         {theme.motto}
