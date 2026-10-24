@@ -113,7 +113,10 @@ export function RecentFines({ rows }: { rows: FineRow[] }) {
               </span>
 
               <span className="flex w-[7.5rem] shrink-0 justify-end gap-1.5">
-                {!cancelled && (f.overdue_multiplier ?? 1) > 1 && (
+                {/* 완납·승인 대기 건은 면제하면 미납으로 되돌아가므로 버튼을 숨긴다 */}
+                {!cancelled &&
+                  (f.status === "unpaid" || f.status === "doubled") &&
+                  (f.overdue_multiplier ?? 1) > 1 && (
                   <WaiveOverdueButton fineId={f.id} />
                 )}
                 {!cancelled && <CancelFineButton fineId={f.id} />}

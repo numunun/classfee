@@ -306,10 +306,14 @@ export async function waiveOverdue(fineId: string, reason: string): Promise<Acti
     })
     .eq("id", fineId)
     .is("deleted_at", null)
+    // 완납·승인 대기 건까지 status 를 unpaid 로 덮어쓰면 낸 돈이 미납으로 되돌아간다.
+    .in("status", ["unpaid", "doubled"])
     .select("id");
 
   if (error) return { ok: false, message: error.message };
-  if (!data?.length) return { ok: false, message: "이미 취소된 벌금이에요." };
+  if (!data?.length) {
+    return { ok: false, message: "취소됐거나 완납·승인 대기 중인 벌금은 면제할 수 없어요." };
+  }
 
   revalidatePath("/", "layout");
   return { ok: true };

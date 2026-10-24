@@ -37,6 +37,7 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/login") ||
     path.startsWith("/auth") ||
     path.startsWith("/board") || // 전자칠판: 로그인 없이 열람
+    path.startsWith("/terms") || // 약관·개인정보 처리방침은 로그인 전에도 볼 수 있어야 한다
     path.startsWith("/_next");
 
   if (!user && !isPublic) {
