@@ -8,8 +8,8 @@
 alter table public.settings
   add column if not exists collector_student_number int;
 
--- 부반장(전은찬) 학번을 기본값으로 넣어둔다. 바뀌면 설정에서 수정.
-update public.settings set collector_student_number = 20930 where id = 1;
+-- 예금주 학번은 seed_example.sql 처럼 SQL Editor 에서 직접 넣는다.
+--   update public.settings set collector_student_number = <예금주 학번> where id = 1;
 
 create or replace function public.create_payment_request(
   p_fine_ids uuid[], p_depositor text, p_receipt text)

@@ -263,8 +263,26 @@ export async function setRole(
 }
 
 // ---------- 설정 저장 ----------
-export async function saveSettings(formData: FormData) {
+/** 폼의 정수 칸을 읽는다. 비었거나 숫자가 아니거나 범위를 벗어나면 null. */
+function readInt(formData: FormData, key: string, min: number, max: number): number | null {
+  const raw = String(formData.get(key) ?? "").trim();
+  if (!/^\d+$/.test(raw)) return null;
+  const n = Number(raw);
+  return n >= min && n <= max ? n : null;
+}
+
+export async function saveSettings(formData: FormData): Promise<ActionResult> {
   await assertAdmin();
+
+  const deadline = readInt(formData, "deadline", 1, 60);
+  const late = readInt(formData, "late", 0, 100000);
+  const cleaning = readInt(formData, "cleaning", 0, 100000);
+  if (deadline === null) return { ok: false, message: "납부 기한은 1~60일 사이로 입력하세요." };
+  if (late === null) return { ok: false, message: "지각 벌금을 0~100,000원 사이로 입력하세요." };
+  if (cleaning === null) {
+    return { ok: false, message: "청소 불참 벌금을 0~100,000원 사이로 입력하세요." };
+  }
+
   const supabase = createClient();
   const { error } = await supabase
     .from("settings")
@@ -272,10 +290,10 @@ export async function saveSettings(formData: FormData) {
       account_bank: String(formData.get("bank") || ""),
       account_number: String(formData.get("number") || ""),
       account_holder: String(formData.get("holder") || ""),
-      payment_deadline_days: Number(formData.get("deadline") || 7),
+      payment_deadline_days: deadline,
       double_fine_enabled: formData.get("double") === "on",
-      late_fine_amount: Number(formData.get("late") || 1000),
-      cleaning_fine_amount: Number(formData.get("cleaning") || 2000),
+      late_fine_amount: late,
+      cleaning_fine_amount: cleaning,
       neis_atpt_code: String(formData.get("atpt") || "G10").trim(),
       neis_school_code: String(formData.get("schoolCode") || "").trim(),
       class_label: String(formData.get("classLabel") || "").trim() || "우리 반",
@@ -283,9 +301,10 @@ export async function saveSettings(formData: FormData) {
       maintenance_text: String(formData.get("maintenanceText") || "").trim() || null,
     })
     .eq("id", 1);
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, message: error.message };
   revalidateTag("settings");
   revalidatePath("/admin/settings");
+  return { ok: true };
 }
 
 // ---------- 연체 배수 면제 (구제) ----------

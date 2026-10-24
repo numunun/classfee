@@ -16,7 +16,7 @@ Started as a Google Sheet for tracking class fines. Now it runs the room.
 
 ![RLS](https://img.shields.io/badge/RLS-enabled-3FCF8E?style=flat-square)
 ![Region](https://img.shields.io/badge/region-icn1%20(Seoul)-black?style=flat-square)
-![Migrations](https://img.shields.io/badge/migrations-17-blue?style=flat-square)
+![Migrations](https://img.shields.io/badge/migrations-29-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
 
 </div>
@@ -34,7 +34,8 @@ Late arrivals, cleaning no-shows, and misc penalties — issued by admins, paid 
 bank transfer, verified against the statement.
 
 - Due 7 days after issue
-- **Doubles every 7 days overdue, capped at 4×**
+- **Late fines escalate per offense** — ₩1,000 → 2,000 → 4,000 … capped at ₩16,000
+- Fines issued before 2026-09-10 double once overdue (max 2×)
 - Escalating consequences by cumulative total
 - Cancel, don't delete — the record survives
 
@@ -120,7 +121,7 @@ npm run dev
 
 <br/>
 
-**1. Run the migrations in order** — `supabase/migrations/` 0001 → 0017.
+**1. Run the migrations in order** — `supabase/migrations/` 0001 → 0029.
 Out-of-order runs fail; later files depend on earlier functions.
 
 **2. Seed the first admin.** RLS blocks non-admins from editing the roster, so the
@@ -159,6 +160,7 @@ select cron.schedule('overdue-fines', '5 15 * * *', $$ select public.apply_overd
 |:--|:--|
 | Sessions in **httpOnly cookies** | `localStorage` is readable by any script on the page |
 | Roles **re-read from the DB** server-side | A client-supplied `role: "admin"` means nothing |
+| School domain is **checked in the DB too** | `self_register` / `link_current_user` require a Google `@dshs.kr` account — the anon key can mint a session without ever hitting `/auth/callback` |
 | `payment_requests` has **no INSERT policy** | Requests only come from an RPC that computes the amount server-side — the client can't forge a total |
 | Admins **can't approve their own** payments | Real money moves through this; self-approval is an audit hole |
 | `apply_overdue_fines()` has **EXECUTE revoked** | It's `security definer`; without this a student could double everyone's fines on demand |

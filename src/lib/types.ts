@@ -67,7 +67,10 @@ export interface Fine {
   overdue_waive_reason?: string | null;
 }
 
-/** 실제로 내야 할 금액. 연체 배수를 반영한다. (규정 ⑧⑨: 7일마다 2배, 최대 4배) */
+/**
+ * 실제로 내야 할 금액. 연체 배수를 반영한다.
+ * 2026-09-09 까지 부과된 건만 기한을 넘기면 2배(최대 2배)가 된다. 이후 건은 지각 누진제만 적용 (0023).
+ */
 export function payable(f: Pick<Fine, "amount" | "status" | "overdue_multiplier">): number {
   const m = f.overdue_multiplier ?? (f.status === "doubled" ? 2 : 1);
   return f.amount * m;

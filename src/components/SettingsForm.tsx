@@ -25,7 +25,8 @@ export function SettingsForm({ s }: { s: Settings }) {
       action={async (fd) => {
         setPending(true);
         try {
-          await saveSettings(fd);
+          const res = await saveSettings(fd);
+          if (!res.ok) return toast(res.message, "error");
           toast("설정을 저장했어요.");
           router.push("/admin");
         } catch (e) {
