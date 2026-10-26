@@ -253,25 +253,16 @@ export function BoardView({
             );
           }
 
-          // 관리자가 처리한 칸은 눌러도 바꿀 수 없으므로 버튼이 아니라 표시만 한다
-          const Cell = r.locked ? "div" : "button";
-          const cellProps = r.locked
-            ? { title: "관리자가 처리한 기록이에요" }
-            : {
-                onClick: () => {
-                  setErr("");
-                  setEditing(r);
-                },
-              };
-
-          // 학생이 있는 좌석 — 누르면 상태를 바꿀 수 있다
+          // 학생이 있는 좌석 — 누르면 상태를 바꿀 수 있다.
+          // 관리자가 처리한 칸(자물쇠)도 열리지만, 고르는 버튼이 꺼진 채로 나온다.
           return (
-            <Cell
+            <button
               key={n}
-              {...cellProps}
-              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 ${
-                r.locked ? "cursor-default" : "hover:brightness-125"
-              } ${CARD[r.status]}`}
+              onClick={() => {
+                setErr("");
+                setEditing(r);
+              }}
+              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 hover:brightness-125 ${CARD[r.status]}`}
             >
               <p className={`${T.seat} font-medium leading-none opacity-50`}>
                 {n}번{r.locked && " 🔒"}
@@ -291,7 +282,7 @@ export function BoardView({
               {r.reason && (
                 <p className={`${T.reason} mt-[0.3vh] w-full truncate opacity-60`}>{r.reason}</p>
               )}
-            </Cell>
+            </button>
           );
         })}
       </div>
@@ -320,18 +311,30 @@ export function BoardView({
                 </span>
               </p>
             ) : (
-              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {ORDER.filter((k) => k !== "independent").map((k) => (
-                  <button
-                    key={k}
-                    disabled={saving}
-                    onClick={() => saveFromBoard(editing.seat_no, k)}
-                    className={`rounded-xl border py-4 text-lg font-bold disabled:opacity-50 ${CARD[k]}`}
-                  >
-                    {NS_ICON[k]} {NS_LABEL[k]}
-                  </button>
-                ))}
-              </div>
+              <>
+                <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {ORDER.filter((k) => k !== "independent").map((k) => (
+                    <button
+                      key={k}
+                      // 관리자가 처리한 칸은 버튼을 꺼 둔다 (DB 의 board_report 에서도 막힌다)
+                      disabled={saving || !!editing.locked}
+                      onClick={() => saveFromBoard(editing.seat_no, k)}
+                      className={`rounded-xl border py-4 text-lg font-bold disabled:opacity-30 ${CARD[k]}`}
+                    >
+                      {NS_ICON[k]} {NS_LABEL[k]}
+                    </button>
+                  ))}
+                </div>
+                {editing.locked && (
+                  <p className="mt-4 text-center text-base" style={{ color: "#a3a3a3" }}>
+                    🔒 관리자가 처리한 기록이에요.
+                    <br />
+                    <span className="text-sm" style={{ color: "#737373" }}>
+                      변경이 필요하면 관리자에게 문의하세요.
+                    </span>
+                  </p>
+                )}
+              </>
             )}
 
             {err && (

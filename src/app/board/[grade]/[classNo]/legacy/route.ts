@@ -238,14 +238,19 @@ export async function GET(
       (code ? "k=" + encodeURIComponent(code) : "");
 
     let buttons = "";
-    // 비활성 학생·관리자가 처리한 칸은 고를 게 없다 (DB 의 board_report 에서도 막힌다).
-    // 목록에서는 링크를 걸지 않지만, 주소를 직접 쳐서 들어온 경우를 위해 여기서도 막는다.
-    const blocked = target.status === "inactive" || !!target.locked;
-    const picks: NightStatus[] = blocked
-      ? []
-      : ["present", "academy", "hospital", "special", "other"];
+    // 비활성 학생은 고를 게 없다 (DB 의 board_report 에서도 막힌다)
+    const picks: NightStatus[] =
+      target.status === "inactive" ? [] : ["present", "academy", "hospital", "special", "other"];
+    // 관리자가 처리한 칸은 버튼을 보여주되 꺼 둔다 (폼 없이 그려서 눌러도 전송되지 않는다)
+    const locked = !!target.locked;
     for (const k of picks) {
       const c = COLOR[k];
+      if (locked) {
+        buttons +=
+          '<button class="pick" type="button" disabled style="opacity:.3;cursor:default;background:' +
+          c[3] + ";border-color:" + c[2] + ";color:" + c[1] + '">' + NS_LABEL[k] + "</button>";
+        continue;
+      }
       buttons +=
         '<form method="post" style="display:inline-block">' +
         '<input type="hidden" name="seat" value="' + editSeat + '">' +
@@ -262,13 +267,14 @@ export async function GET(
       '<div class="editname">' + esc(target.name) + "</div>" +
       '<div class="editsub">' + editSeat + "번 · " + SESSION_LABEL[session] +
       " · 현재 " + NS_LABEL[target.status] + "</div>" +
-      (blocked
-        ? '<div class="note">' +
-          (target.locked
-            ? "관리자가 처리한 기록입니다."
-            : "CIP 참여 대상이 아닌 학생입니다.") +
-          '<br><span style="font-size:2vh;color:#6a6a72">변경이 필요하면 관리자에게 말해주세요.</span></div>'
-        : '<div class="picks">' + buttons + "</div>") +
+      (target.status === "inactive"
+        ? '<div class="note">CIP 참여 대상이 아닌 학생입니다.<br>' +
+          '<span style="font-size:2vh;color:#6a6a72">변경이 필요하면 관리자에게 말해주세요.</span></div>'
+        : '<div class="picks">' + buttons + "</div>" +
+          (locked
+            ? '<div class="note">🔒 관리자가 처리한 기록입니다.<br>' +
+              '<span style="font-size:2vh;color:#6a6a72">변경이 필요하면 관리자에게 문의하세요.</span></div>'
+            : "")) +
       '<a class="back" href="' + esc(backHref) + '">취소하고 돌아가기</a>' +
       "</div>";
 
@@ -294,21 +300,19 @@ export async function GET(
     const isInactive = r.status === "inactive";
     // 카드를 눌러 상태를 고칠 수 있게 링크로 만든다 (자바스크립트 없이 페이지 이동)
     // 비활성 학생도 누르면 「대상이 아님」 안내가 뜨도록 링크는 유지한다.
-    // 관리자가 처리한 칸은 바꿀 수 없으므로 링크 없이 표시만 하고 자물쇠를 붙인다.
+    // 관리자가 처리한 칸도 눌러서 들어갈 수 있다 (수정 화면에서 버튼이 꺼져 있다). 자물쇠만 붙인다.
     const editHref =
       "?edit=" + n + "&s=" + session + (code ? "&k=" + encodeURIComponent(code) : "");
-    const tag = r.locked ? "div" : "a";
     cells +=
-      "<" + tag + ' class="cell"' +
-      (r.locked ? "" : ' href="' + esc(editHref) + '"') +
-      ' style="background:' + c[0] + ";border-color:" + c[2] + '">' +
+      '<a class="cell" href="' + esc(editHref) + '" style="background:' + c[0] +
+      ";border-color:" + c[2] + '">' +
       '<div class="no">' + n + "번" + (r.locked ? " 🔒" : "") + "</div>" +
       '<div class="nm"' + (isInactive ? ' style="color:#6a6a72"' : "") + ">" +
       esc(r.name) + "</div>" +
       '<div><span class="st" style="background:' + c[3] + ";color:" + c[1] + '">' +
       NS_LABEL[r.status] + "</span></div>" +
       (r.reason ? '<div class="rs">' + esc(r.reason) + "</div>" : "") +
-      "</" + tag + ">";
+      "</a>";
   }
 
   const errMsg = url.searchParams.get("err");
