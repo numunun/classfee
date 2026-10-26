@@ -21,6 +21,8 @@ export type Snap = {
   status: NightStatus;
   reason: string | null;
   is_independent: boolean;
+  /** 관리자가 처리한 칸. 전자칠판에서 바꿀 수 없다 (0031 이전 DB 면 undefined) */
+  locked?: boolean;
 };
 
 export type Snapshots = Record<number, Snap[]>;
@@ -251,17 +253,29 @@ export function BoardView({
             );
           }
 
+          // 관리자가 처리한 칸은 눌러도 바꿀 수 없으므로 버튼이 아니라 표시만 한다
+          const Cell = r.locked ? "div" : "button";
+          const cellProps = r.locked
+            ? { title: "관리자가 처리한 기록이에요" }
+            : {
+                onClick: () => {
+                  setErr("");
+                  setEditing(r);
+                },
+              };
+
           // 학생이 있는 좌석 — 누르면 상태를 바꿀 수 있다
           return (
-            <button
+            <Cell
               key={n}
-              onClick={() => {
-                setErr("");
-                setEditing(r);
-              }}
-              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 hover:brightness-125 ${CARD[r.status]}`}
+              {...cellProps}
+              className={`flex min-h-0 flex-col items-center justify-center overflow-hidden rounded-xl border px-1 text-center transition-colors duration-300 ${
+                r.locked ? "cursor-default" : "hover:brightness-125"
+              } ${CARD[r.status]}`}
             >
-              <p className={`${T.seat} font-medium leading-none opacity-50`}>{n}번</p>
+              <p className={`${T.seat} font-medium leading-none opacity-50`}>
+                {n}번{r.locked && " 🔒"}
+              </p>
               <p
                 className={`${T.name} mt-[0.4vh] truncate font-bold leading-tight ${
                   r.status === "inactive" ? "text-neutral-500" : "text-white"
@@ -277,7 +291,7 @@ export function BoardView({
               {r.reason && (
                 <p className={`${T.reason} mt-[0.3vh] w-full truncate opacity-60`}>{r.reason}</p>
               )}
-            </button>
+            </Cell>
           );
         })}
       </div>
