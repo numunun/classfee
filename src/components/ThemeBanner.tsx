@@ -62,6 +62,8 @@ export function ThemeBanner({
 
   const light = theme.mode === "light";
   const title = theme.nickname ?? name;
+  // 상반신 사진은 오른쪽 위를 사진이 차지하므로 로고를 팀 이름 앞으로 옮긴다
+  const photoTop = !!theme.cardImage && theme.cardImageAlign === "top";
 
   return (
     <section
@@ -85,7 +87,8 @@ export function ThemeBanner({
         }}
       />
 
-      {/* 카드 그림: 오른쪽에 붙이고 왼쪽(글자 쪽)으로 갈수록 흐려지게 */}
+      {/* 카드 그림: 오른쪽 끝에 딱 붙이고 왼쪽(글자 쪽)으로 갈수록 흐려지게.
+          사진이 잘린 가장자리(오른쪽·아래)는 카드 테두리 밖으로 내보내 잘린 티가 나지 않게 한다. */}
       {theme.cardImage && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -93,14 +96,14 @@ export function ThemeBanner({
           alt=""
           aria-hidden
           className={`pointer-events-none absolute -z-10 w-auto select-none object-contain ${
-            theme.cardImageAlign === "top"
-              ? "right-14 top-0 h-[125%] max-w-[58%] object-top"
+            photoTop
+              ? "-right-2 top-1 h-[130%] max-w-none object-top"
               : "bottom-0 right-0 h-[112%] max-w-[62%] object-right-bottom"
           }`}
           style={{
-            WebkitMaskImage: "linear-gradient(to left, #000 45%, transparent 100%)",
-            maskImage: "linear-gradient(to left, #000 45%, transparent 100%)",
-            opacity: 0.85,
+            WebkitMaskImage: "linear-gradient(to left, #000 55%, transparent 100%)",
+            maskImage: "linear-gradient(to left, #000 55%, transparent 100%)",
+            opacity: photoTop ? 1 : 0.85,
           }}
         />
       )}
@@ -111,12 +114,21 @@ export function ThemeBanner({
       <div className="relative flex h-full min-h-[10rem] flex-col justify-between">
         <div className="flex items-start justify-between gap-3">
           <p
-            className="pt-1 text-[0.6875rem] font-bold uppercase tracking-[0.16em]"
+            className="flex items-center gap-2 pt-1 text-[0.6875rem] font-bold uppercase tracking-[0.16em]"
             style={{ color: "rgba(255,255,255,.7)" }}
           >
+            {photoTop && theme.logo && (
+              <span
+                className="grid size-7 shrink-0 place-items-center rounded-lg"
+                style={light ? { background: "#fff" } : undefined}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={theme.logo} alt="" className="size-6 object-contain" />
+              </span>
+            )}
             {theme.team}
           </p>
-          {theme.logo ? (
+          {photoTop ? null : theme.logo ? (
             // 흰 바탕 로고(한화)는 흰 타일 위에, 투명 로고는 타일 없이 그대로 둔다
             <div
               className="grid size-12 shrink-0 place-items-center rounded-2xl"
