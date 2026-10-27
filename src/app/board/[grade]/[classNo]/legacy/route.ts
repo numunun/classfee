@@ -8,6 +8,7 @@ import {
   type NightStatus,
   type Session,
 } from "@/lib/night-study";
+import { fetchCipDay } from "@/lib/cip-day";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +86,7 @@ export async function GET(
     { auth: { persistSession: false } }
   );
 
-  const [{ data, error }, { data: meta }] = await Promise.all([
+  const [{ data, error }, { data: meta }, cipDay] = await Promise.all([
     supabase.rpc("board_snapshot", {
       p_grade: grade,
       p_class: classNo,
@@ -93,7 +94,10 @@ export async function GET(
       p_code: code,
     }),
     supabase.rpc("board_meta"),
+    fetchCipDay(supabase),
   ]);
+  // 특별 일정으로 지금 차수를 운영하지 않으면 좌석 대신 안내를 띄운다
+  const sessionOff = !cipDay.sessions.includes(session);
 
   const refreshTarget =
     "?" + (explicit ? "s=" + explicit + "&" : "") + (code ? "k=" + encodeURIComponent(code) : "");
@@ -182,7 +186,7 @@ export async function GET(
     });
   }
 
-  const rows = (data ?? []) as Snap[];
+  const rows = (sessionOff ? [] : data ?? []) as Snap[];
   const bySeat: Record<number, Snap> = {};
   let maxSeat = MIN_SEATS;
   for (const r of rows) {
@@ -204,9 +208,11 @@ export async function GET(
     if (n === session) cls += " tab-on";
     else if (n === live) cls += " tab-live";
     const href = "?s=" + n + (code ? "&k=" + encodeURIComponent(code) : "");
+    // 특별 일정으로 운영하지 않는 차수는 줄을 긋는다
+    const off = !cipDay.sessions.includes(n);
     tabs +=
       '<a class="' + cls + '" href="' + esc(href) + '">' +
-      SESSION_LABEL[n] +
+      (off ? '<span style="text-decoration:line-through">' + SESSION_LABEL[n] + "</span>" : SESSION_LABEL[n]) +
       (n === live ? '<span class="dot"></span>' : "") +
       "</a>";
   }
@@ -330,7 +336,23 @@ export async function GET(
     '<div class="rt"><div class="tabs">' + tabs + "</div>" +
     '<div class="sum">' + chips + "</div></div>" +
     "</div>" +
-    '<div class="grid">' + cells + "</div>";
+    (sessionOff
+      ? '<div class="note" style="margin-top:12vh;text-align:center">' +
+        '<div style="font-size:5vh;font-weight:800;color:#e9e9ee">' +
+        (cipDay.sessions.length === 0
+          ? "오늘은 CIP가 없어요"
+          : "오늘 " + SESSION_LABEL[session] + "는 운영하지 않아요") +
+        "</div>" +
+        (cipDay.note
+          ? '<div style="margin-top:1.5vh;font-size:2.6vh;color:#9a9aa6">' + esc(cipDay.note) + "</div>"
+          : "") +
+        (cipDay.sessions.length > 0
+          ? '<div style="margin-top:1vh;font-size:2vh;color:#6a6a72">오늘은 ' +
+            cipDay.sessions.map((x) => SESSION_LABEL[x]).join(" · ") +
+            "만 운영해요</div>"
+          : "") +
+        "</div>"
+      : '<div class="grid">' + cells + "</div>");
 
   return new Response(head + body + "</div></body></html>", {
     headers: {

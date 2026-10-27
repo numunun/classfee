@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { BoardClock } from "@/components/BoardClock";
 import { BoardView, type Snap, type Snapshots } from "@/components/BoardView";
 import { SESSIONS, liveSessionAt, seoulMinutesOfDay, type Session } from "@/lib/night-study";
+import { fetchCipDay } from "@/lib/cip-day";
 
 export const metadata: Metadata = { title: "CIP 현황판" };
 export const dynamic = "force-dynamic";
@@ -31,6 +32,8 @@ export default async function BoardPage({
   );
 
   // 세 차수를 한 번에 받아둔다. 탭을 눌러도 서버를 다시 치지 않아 즉시 전환된다.
+  // 그날 운영 차수(특별 일정)는 스냅숏과 동시에 읽는다
+  const cipDayPromise = fetchCipDay(supabase);
   const [s1, s2, s3, metaRes] = await Promise.all([
     ...SESSIONS.map((n) =>
       supabase.rpc("board_snapshot", {
@@ -42,6 +45,7 @@ export default async function BoardPage({
     ),
     supabase.rpc("board_meta"),
   ]);
+  const cipDay = await cipDayPromise;
 
   const failed = [s1, s2, s3].find((r) => r.error);
   if (failed?.error) {
@@ -83,6 +87,7 @@ export default async function BoardPage({
         grade={grade}
         classNo={classNo}
         code={searchParams.k ?? ""}
+        cipDay={cipDay}
       />
     </div>
   );

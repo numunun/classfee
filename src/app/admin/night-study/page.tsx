@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NightStudyAdmin, type Row } from "@/components/NightStudyAdmin";
-import { todayISO, weekdayIndex, isCipDay, type NightStatus } from "@/lib/night-study";
+import { todayISO, weekdayIndex, type NightStatus } from "@/lib/night-study";
+import { fetchCipDay, describeCipDay } from "@/lib/cip-day";
+import type { CipDayRow } from "@/components/CipDayManager";
 import { PageHeader, HeaderLink } from "@/components/PageHeader";
 import { ArrowUpRight } from "lucide-react";
 
@@ -33,7 +35,13 @@ export default async function NightStudyPage() {
   const today = todayISO();
   const wd = weekdayIndex();
 
-  const [{ data: studentsData }, { data: recordsData }, { data: acaData }] = await Promise.all([
+  const [
+    { data: studentsData },
+    { data: recordsData },
+    { data: acaData },
+    { data: daysData },
+    cipToday,
+  ] = await Promise.all([
     supabase
       .from("students")
       .select("id, name, student_number, is_independent, cip_inactive")
@@ -43,6 +51,13 @@ export default async function NightStudyPage() {
       .select("student_id, session, status, reason, self_reported")
       .eq("study_date", today),
     supabase.from("academy_schedules").select("student_id, weekday"),
+    // 오늘 이후 특별 일정 (0032 전이면 테이블이 없어 빈 목록)
+    supabase
+      .from("cip_day_overrides")
+      .select("day, sessions, note")
+      .gte("day", today)
+      .order("day"),
+    fetchCipDay(supabase, today),
   ]);
 
   const students = (studentsData ?? []) as StudentRow[];
@@ -91,13 +106,29 @@ export default async function NightStudyPage() {
         }
       />
 
-      {!isCipDay(wd) && (
+      {cipToday.sessions.length === 0 ? (
         <div className="mb-3 rounded-xl border border-line bg-surface-2 px-4 py-3 text-xs text-neutral-400">
-          오늘은 CIP 운영일이 아니에요. (월~목만 운영) 기록은 남길 수 있지만 학생은 신고할 수 없어요.
+          {cipToday.special
+            ? `오늘은 특별 일정으로 CIP가 없어요${cipToday.note ? ` (${cipToday.note})` : ""}.`
+            : "오늘은 CIP 운영일이 아니에요. (월~목만 운영)"}{" "}
+          기록은 남길 수 있지만 학생은 신고할 수 없어요.
         </div>
+      ) : (
+        cipToday.special && (
+          <div className="mb-3 rounded-xl bg-amber-500/10 px-4 py-3 text-xs text-amber-400">
+            오늘은 특별 일정이에요 · {describeCipDay(cipToday)}
+            {cipToday.note ? ` · ${cipToday.note}` : ""}
+          </div>
+        )
       )}
 
-      <NightStudyAdmin rows={rows} date={today} weekday={wd} />
+      <NightStudyAdmin
+        rows={rows}
+        date={today}
+        weekday={wd}
+        openSessions={cipToday.sessions}
+        cipDays={(daysData ?? []) as CipDayRow[]}
+      />
     </>
   );
 }

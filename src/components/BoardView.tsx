@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Modal } from "@/components/Modal";
+import { fetchCipDay, type CipDay } from "@/lib/cip-day";
 import {
   NS_LABEL,
   NS_ICON,
@@ -56,14 +57,19 @@ export function BoardView({
   grade,
   classNo,
   code,
+  cipDay: initialCipDay,
 }: {
   snapshots: Snapshots;
   initial: Session;
   grade: number;
   classNo: number;
   code: string;
+  /** 오늘 운영하는 차수 (관리자가 적은 특별 일정 반영) */
+  cipDay: CipDay;
 }) {
   const [snapshots, setSnapshots] = useState<Snapshots>(initialSnapshots);
+  const [cipDay, setCipDay] = useState<CipDay>(initialCipDay);
+  const dayFingerprint = useRef(JSON.stringify(initialCipDay));
   // 전자칠판에서 직접 고칠 대상 (좌석 번호). null 이면 닫힘
   const [editing, setEditing] = useState<Snap | null>(null);
   const [saving, setSaving] = useState(false);
@@ -126,6 +132,14 @@ export function BoardView({
 
     async function poll() {
       try {
+        // 전자칠판은 며칠씩 켜 두므로 그날 운영 차수도 함께 다시 읽는다 (자정이 지나면 바뀐다)
+        const day = await fetchCipDay(supabase);
+        const daySig = JSON.stringify(day);
+        if (!cancelled && daySig !== dayFingerprint.current) {
+          dayFingerprint.current = daySig;
+          setCipDay(day);
+        }
+
         const results = await Promise.all(
           SESSIONS.map((n) =>
             supabase.rpc("board_snapshot", {
@@ -181,7 +195,9 @@ export function BoardView({
     if (live !== null) setSession(live);
   }, [ready, live]);
 
-  const rows = snapshots[session] ?? [];
+  // 특별 일정으로 지금 고른 차수를 운영하지 않으면 좌석 대신 안내를 띄운다
+  const sessionOff = !cipDay.sessions.includes(session);
+  const rows = sessionOff ? [] : snapshots[session] ?? [];
   // 비활성 학생은 CIP 대상이 아니므로 인원 집계에서 뺀다
   const active = rows.filter((r) => r.status !== "inactive");
   const bySeat = new Map(rows.map((r) => [r.seat_no, r]));
@@ -211,7 +227,10 @@ export function BoardView({
               title={SESSION_TIME[n].label}
               className={`${T.chip} rounded-xl border px-[0.9em] py-[0.35em] font-bold transition ${tone}`}
             >
-              <span>{SESSION_LABEL[n]}</span>
+              {/* 특별 일정으로 운영하지 않는 차수는 줄을 긋는다 */}
+              <span className={cipDay.sessions.includes(n) ? "" : "line-through"}>
+                {SESSION_LABEL[n]}
+              </span>
               {isLive ? (
                 <span className="ml-1.5 inline-block size-2 rounded-full bg-green-400" />
               ) : null}
@@ -231,6 +250,27 @@ export function BoardView({
         ))}
       </div>
 
+      {sessionOff ? (
+        <div className="mt-[1.2vh] grid min-h-0 flex-1 place-items-center rounded-2xl border border-dashed border-line text-center">
+          <div>
+            <p className="text-[clamp(1.2rem,4.5vh,3.6rem)] font-bold text-neutral-200">
+              {cipDay.sessions.length === 0
+                ? "오늘은 CIP가 없어요"
+                : `오늘 ${SESSION_LABEL[session]}는 운영하지 않아요`}
+            </p>
+            {cipDay.note && (
+              <p className="mt-[1.5vh] text-[clamp(0.9rem,2.6vh,2rem)] text-neutral-400">
+                {cipDay.note}
+              </p>
+            )}
+            {cipDay.sessions.length > 0 && (
+              <p className="mt-[1vh] text-[clamp(0.8rem,2vh,1.6rem)] text-neutral-500">
+                오늘은 {cipDay.sessions.map((x) => SESSION_LABEL[x]).join(" · ")}만 운영해요
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
       <div
         className="mt-[1.2vh] grid min-h-0 flex-1 gap-[0.7vh]"
         style={{
@@ -286,6 +326,7 @@ export function BoardView({
           );
         })}
       </div>
+      )}
       {editing && (
         <Modal onClose={() => !saving && setEditing(null)}>
           {/* 떠 있는 요소라 색을 인라인으로 고정한다 */}

@@ -15,6 +15,7 @@ import { CardTitle } from "@/components/CardTitle";
 import { CopyButton } from "@/components/CopyButton";
 import { PageHeader } from "@/components/PageHeader";
 import { CircleCheck, CircleX, Landmark, Moon } from "lucide-react";
+import { fetchCipDay, describeCipDay } from "@/lib/cip-day";
 import { TermsGate } from "@/components/TermsGate";
 import { TERMS_VERSION } from "@/lib/terms";
 import { FINE_TYPE_LABEL, payable, won, type Fine, type Student } from "@/lib/types";
@@ -26,7 +27,6 @@ import {
   SESSION_LABEL,
   NS_LABEL,
   NS_STYLE,
-  isCipDay,
   isReportOpen,
   resolveNight,
   type NightStatus,
@@ -50,7 +50,7 @@ export async function StudentView({
   const today = todayISO();
   const wd = weekdayIndex();
 
-  const [{ data: finesData }, { data: rejectedData }, s] = await Promise.all([
+  const [{ data: finesData }, { data: rejectedData }, s, cipDay] = await Promise.all([
     supabase
       .from("fines")
       .select("*")
@@ -64,7 +64,14 @@ export async function StudentView({
       .order("reviewed_at", { ascending: false })
       .limit(3),
     getSettings(),
+    // 오늘 운영하는 차수 (관리자가 적은 특별 일정 반영)
+    fetchCipDay(supabase, today),
   ]);
+  const cipOpen = cipDay.sessions.length > 0;
+  // 특별 일정이면 카드에 「1차만 운영 · 중간고사」 같은 한 줄을 붙인다
+  const dayNote = cipDay.special
+    ? [describeCipDay(cipDay), cipDay.note].filter(Boolean).join(" · ")
+    : null;
 
   const fines = (finesData ?? []) as Fine[];
   const rejected = (rejectedData ?? []) as {
@@ -262,19 +269,25 @@ export async function StudentView({
               <p className="mt-3 text-sm text-neutral-500">
                 CIP 참여 대상이 아니에요. 따로 신고하지 않아도 돼요.
               </p>
-              {isCipDay(wd) && inactiveOverrides.length > 0 && (
+              {cipOpen && inactiveOverrides.length > 0 && (
                 <>
-                  <SessionList states={inactiveOverrides} />
+                  <SessionList states={inactiveOverrides} open={cipDay.sessions} />
                   <p className="mt-2 text-xs text-neutral-500">관리자가 따로 지정한 기록이에요.</p>
                 </>
               )}
             </section>
-          ) : isCipDay(wd) && !readOnly && isReportOpen() ? (
-            <NightStudyReport states={cipStates} isIndependent={!!me.is_independent} />
-          ) : readOnly || (isCipDay(wd) && !isReportOpen()) ? (
+          ) : cipOpen && !readOnly && isReportOpen() ? (
+            <NightStudyReport
+              states={cipStates}
+              isIndependent={!!me.is_independent}
+              openSessions={cipDay.sessions}
+              dayNote={dayNote}
+            />
+          ) : cipOpen ? (
             <section className="rounded-3xl bg-surface p-5">
               <CardTitle icon={Moon}>오늘 CIP</CardTitle>
-              <SessionList states={cipStates} />
+              {dayNote && <p className="mt-2 text-xs font-medium text-amber-400">{dayNote}</p>}
+              <SessionList states={cipStates} open={cipDay.sessions} />
               {!readOnly && (
                 <p className="mt-3 text-xs text-neutral-500">
                   오늘 신고는 마감됐어요. (21시까지) 수정이 필요하면 관리자에게 말해주세요.
@@ -285,7 +298,9 @@ export async function StudentView({
             <section className="rounded-3xl bg-surface p-5">
               <CardTitle icon={Moon}>오늘 CIP</CardTitle>
               <p className="mt-3 text-sm text-neutral-500">
-                오늘은 CIP 운영일이 아니에요. (월~목만 운영)
+                {cipDay.special
+                  ? `오늘은 CIP가 없어요${cipDay.note ? ` · ${cipDay.note}` : ""}`
+                  : "오늘은 CIP 운영일이 아니에요. (월~목만 운영)"}
               </p>
             </section>
           )}
@@ -351,20 +366,32 @@ export async function StudentView({
 }
 
 /** 차수별 CIP 상태 목록 (읽기 전용) */
-function SessionList({ states }: { states: SessionState[] }) {
+function SessionList({ states, open }: { states: SessionState[]; open: readonly Session[] }) {
   return (
     <ul className="mt-3 space-y-2">
-      {states.map((st) => (
-        <li key={st.session} className="flex items-center justify-between gap-2 text-sm">
-          <span className="font-medium text-neutral-300">{SESSION_LABEL[st.session]}</span>
-          <span className="min-w-0 flex-1 truncate text-right text-xs text-neutral-500">
-            {st.reason ?? ""}
-          </span>
-          <span className={`shrink-0 pill border ${NS_STYLE[st.status]}`}>
-            {NS_LABEL[st.status]}
-          </span>
-        </li>
-      ))}
+      {states.map((st) => {
+        // 특별 일정으로 운영하지 않는 차수
+        const off = !open.includes(st.session);
+        return (
+          <li key={st.session} className="flex items-center justify-between gap-2 text-sm">
+            <span className={`font-medium ${off ? "text-neutral-600" : "text-neutral-300"}`}>
+              {SESSION_LABEL[st.session]}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-right text-xs text-neutral-500">
+              {off ? "" : st.reason ?? ""}
+            </span>
+            {off ? (
+              <span className="pill shrink-0 border border-neutral-500/15 bg-neutral-500/10 text-neutral-500">
+                운영 안 함
+              </span>
+            ) : (
+              <span className={`shrink-0 pill border ${NS_STYLE[st.status]}`}>
+                {NS_LABEL[st.status]}
+              </span>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

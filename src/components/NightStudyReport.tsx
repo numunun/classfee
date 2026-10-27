@@ -22,9 +22,15 @@ export type SessionState = {
 export function NightStudyReport({
   states,
   isIndependent,
+  openSessions,
+  dayNote,
 }: {
   states: SessionState[];
   isIndependent: boolean;
+  /** 오늘 운영하는 차수. 특별 일정으로 빠진 차수는 「운영 안 함」으로 그린다 */
+  openSessions: readonly Session[];
+  /** 특별 일정 한 줄 (예: 「1차만 운영 · 중간고사」) */
+  dayNote?: string | null;
 }) {
   return (
     <section className="rounded-3xl bg-surface p-5">
@@ -36,6 +42,7 @@ export function NightStudyReport({
       >
         오늘 CIP
       </CardTitle>
+      {dayNote && <p className="mt-2 text-xs font-medium text-amber-400">{dayNote}</p>}
       <p className="mt-2 text-xs text-neutral-500">
         기본은 참석이에요. 빠지는 차수만 사유를 골라주세요.
       </p>
@@ -46,6 +53,7 @@ export function NightStudyReport({
           return (
             <SessionRow
               key={n}
+              off={!openSessions.includes(n)}
               session={n}
               status={st?.status ?? (isIndependent ? "independent" : "present")}
               reason={st?.reason ?? null}
@@ -59,8 +67,10 @@ export function NightStudyReport({
 }
 
 function SessionRow({
-  session, status, reason, locked,
+  session, status, reason, locked, off,
 }: {
+  /** 특별 일정으로 오늘 운영하지 않는 차수 */
+  off: boolean;
   session: Session;
   status: NightStatus;
   reason: string | null;
@@ -93,6 +103,17 @@ function SessionRow({
         toast("네트워크 오류로 등록하지 못했어요. 잠시 후 다시 시도해주세요.", "error");
       }
     });
+  }
+
+  if (off) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-2 p-3.5 opacity-60">
+        <span className="text-sm font-semibold text-neutral-500">{SESSION_LABEL[session]}</span>
+        <span className="pill border border-neutral-500/15 bg-neutral-500/10 text-neutral-500">
+          운영 안 함
+        </span>
+      </div>
+    );
   }
 
   return (

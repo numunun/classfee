@@ -27,6 +27,7 @@ import {
   type NightSource,
 } from "@/lib/night-study";
 import { matches } from "@/lib/hangul";
+import { CipDayManager, type CipDayRow } from "@/components/CipDayManager";
 
 export type Row = {
   id: string;
@@ -59,7 +60,16 @@ const SOURCE_TAG: Partial<Record<NightSource, { text: string; cls: string }>> = 
   academy: { text: "학원 요일", cls: "text-neutral-600" },
 };
 
-function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Session) => void }) {
+function SessionTabs({
+  value,
+  onChange,
+  openSessions,
+}: {
+  value: Session;
+  onChange: (s: Session) => void;
+  /** 오늘 운영하는 차수. 운영하지 않는 차수는 흐리게 그린다 */
+  openSessions: readonly Session[];
+}) {
   return (
     <div className="flex gap-1.5">
       {SESSIONS.map((n) => (
@@ -68,7 +78,7 @@ function SessionTabs({ value, onChange }: { value: Session; onChange: (s: Sessio
           onClick={() => onChange(n)}
           className={`h-9 rounded-lg px-3 text-xs font-medium ${
             value === n ? "btn-primary" : "bg-surface-2 text-neutral-400"
-          }`}
+          } ${openSessions.includes(n) ? "" : "line-through opacity-50"}`}
         >
           {SESSION_LABEL[n]}
         </button>
@@ -81,12 +91,18 @@ export function NightStudyAdmin({
   rows,
   date,
   weekday,
+  openSessions,
+  cipDays,
 }: {
   rows: Row[];
   date: string;
   weekday: number | null;
+  /** 오늘 운영하는 차수 (특별 일정 반영) */
+  openSessions: Session[];
+  /** 오늘 이후 특별 일정 */
+  cipDays: CipDayRow[];
 }) {
-  const [tab, setTab] = useState<"today" | "schedule">("today");
+  const [tab, setTab] = useState<"today" | "schedule" | "days">("today");
   return (
     <>
       <div className="mb-4 flex gap-2">
@@ -106,11 +122,21 @@ export function NightStudyAdmin({
         >
           학원 · 자주반
         </button>
+        <button
+          onClick={() => setTab("days")}
+          className={`h-11 rounded-xl px-4 text-sm font-medium ${
+            tab === "days" ? "btn-primary" : "bg-surface-2 text-neutral-300"
+          }`}
+        >
+          특별 일정
+        </button>
       </div>
       {tab === "today" ? (
-        <TodayList rows={rows} date={date} weekday={weekday} />
-      ) : (
+        <TodayList rows={rows} date={date} weekday={weekday} openSessions={openSessions} />
+      ) : tab === "schedule" ? (
         <ScheduleList rows={rows} />
+      ) : (
+        <CipDayManager rows={cipDays} today={date} />
       )}
     </>
   );
@@ -120,12 +146,15 @@ function TodayList({
   rows,
   date,
   weekday,
+  openSessions,
 }: {
   rows: Row[];
   date: string;
   weekday: number | null;
+  openSessions: Session[];
 }) {
-  const [session, setSession] = useState<Session>(1);
+  // 첫 화면은 오늘 운영하는 첫 차수로 연다
+  const [session, setSession] = useState<Session>(openSessions[0] ?? 1);
   const [query, setQuery] = useState("");
 
   const q = query.trim();
@@ -142,12 +171,19 @@ function TodayList({
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <SessionTabs value={session} onChange={setSession} />
+        <SessionTabs value={session} onChange={setSession} openSessions={openSessions} />
         <span className="text-xs text-neutral-500">
           참석 {attending} / {targets}명
           {inactiveCount > 0 && <span className="ml-1.5 text-neutral-600">· 비활성 {inactiveCount}</span>}
         </span>
       </div>
+
+      {openSessions.length > 0 && !openSessions.includes(session) && (
+        <p className="mb-3 rounded-xl bg-amber-500/10 px-4 py-3 text-xs text-amber-400">
+          오늘 {SESSION_LABEL[session]}는 운영하지 않아요. 기록은 남길 수 있지만 학생·전자칠판에서는
+          신고할 수 없어요.
+        </p>
+      )}
 
       <input
         value={query}

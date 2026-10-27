@@ -146,3 +146,46 @@ export async function setCipInactive(
   touch();
   return { ok: true };
 }
+// ---------- CIP 특별 일정 ----------
+// 특정 날짜에 CIP를 쉬거나 일부 차수만 운영할 때 적는다.
+// sessions 가 비어 있으면 그날 전체 휴무.
+export async function saveCipDay(
+  day: string,
+  sessions: number[],
+  note: string
+): Promise<NightActionResult> {
+  const me = await adminOrNull();
+  if (!me) return DENIED;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return { ok: false, message: "날짜를 골라주세요." };
+
+  const clean = Array.from(new Set(sessions))
+    .filter((n) => n >= 1 && n <= 3)
+    .sort();
+  const why = note.trim();
+  if (why.length > 40) return { ok: false, message: "사유는 40자 이내로 적어주세요." };
+
+  const supabase = createClient();
+  const { error } = await supabase.from("cip_day_overrides").upsert(
+    {
+      day,
+      sessions: clean,
+      note: why || null,
+      created_by: me.id,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "day" }
+  );
+  if (error) return { ok: false, message: error.message };
+  touch();
+  return { ok: true };
+}
+
+// 특별 일정을 지워 그날을 원래(월~목 운영)대로 되돌린다.
+export async function deleteCipDay(day: string): Promise<NightActionResult> {
+  if (!(await adminOrNull())) return DENIED;
+  const supabase = createClient();
+  const { error } = await supabase.from("cip_day_overrides").delete().eq("day", day);
+  if (error) return { ok: false, message: error.message };
+  touch();
+  return { ok: true };
+}
