@@ -17,7 +17,12 @@ import { PageHeader } from "@/components/PageHeader";
 import { CircleCheck, CircleX, Landmark, Moon } from "lucide-react";
 import { fetchCipDay, describeCipDay } from "@/lib/cip-day";
 import { TermsGate } from "@/components/TermsGate";
-import { TERMS_VERSION } from "@/lib/terms";
+import {
+  NEXT_TERMS_VERSION,
+  hasAgreedTerms,
+  isNextTermsPending,
+  termsVersionOn,
+} from "@/lib/terms";
 import { FINE_TYPE_LABEL, payable, won, type Fine, type Student } from "@/lib/types";
 import { getSettings } from "@/lib/settings";
 import {
@@ -167,7 +172,17 @@ export async function StudentView({
 
       {/* 아직 동의하지 않았거나 약관이 바뀌었으면 관문을 띄운다.
           관리자 미리보기(readOnly)에서는 띄우지 않는다. */}
-      {!readOnly && me.terms_version !== TERMS_VERSION && <TermsGate />}
+      {!readOnly &&
+        (!hasAgreedTerms(me.terms_version, today) ? (
+          // 지금 시행 중인 판에 동의하지 않았으면 동의해야 쓸 수 있다
+          <TermsGate version={termsVersionOn(today)} />
+        ) : (
+          // 시행 예정인 개정판은 한 번 안내만 하고 넘길 수 있게 한다
+          isNextTermsPending(today) &&
+          (me.terms_version ?? "") < NEXT_TERMS_VERSION && (
+            <TermsGate version={NEXT_TERMS_VERSION} mode="notice" />
+          )
+        ))}
 
       <PageShell>
         {readOnly ? (

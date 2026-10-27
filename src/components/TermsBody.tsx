@@ -8,7 +8,7 @@ export function TermsBody() {
         <h1 className="text-lg font-bold text-neutral-100">
           이용약관 및 개인정보 처리방침
         </h1>
-        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 10월 13일</p>
+        <p className="mt-1 text-xs text-neutral-500">발효일 2026년 11월 4일</p>
       </div>
 
       <Section n="제1조" title="목적">
@@ -73,6 +73,10 @@ export function TermsBody() {
         <p className="mt-2">
           ③ 최초 이용 시 이용자는 본인의 성명과 학번을 등록하여야 합니다.
         </p>
+        <p className="mt-2">
+          ④ 서비스는 고등학생과 교사를 대상으로 하므로 만 14세 미만 아동의 개인정보를 수집하지
+          않습니다. 만 14세 미만 아동의 정보가 수집된 사실을 알게 된 경우 지체 없이 파기합니다.
+        </p>
       </Section>
 
       <Section n="제6조" title="수집하는 개인정보">
@@ -109,9 +113,51 @@ export function TermsBody() {
         <p className="mt-2">
           ④ 운영자는 이용자의 개인정보를 제3자에게 제공하거나 학급 외부로 반출하지 않습니다.
         </p>
+        <p className="mt-2">
+          ⑤ 운영자는 개인정보를 제3조에 정한 목적 외로 추가 이용하거나 제공하지 않습니다. 법령에
+          따라 요구되는 경우에는 그 근거와 범위를 확인한 뒤 필요한 최소한의 범위에서만 처리하고,
+          그 사실을 이용자에게 알립니다.
+        </p>
       </Section>
 
-      <Section n="제8조" title="개인정보의 보유 및 파기">
+      <Section n="제8조" title="개인정보 처리업무의 위탁">
+        <p>① 운영자는 서비스 운영을 위하여 다음과 같이 개인정보 처리업무를 위탁합니다.</p>
+        <ul className="mt-2 space-y-1 text-neutral-400">
+          <li>
+            · <b className="text-neutral-100">Supabase, Inc.</b> — 데이터베이스·로그인 인증·파일(입금
+            완료 화면 이미지) 저장
+          </li>
+          <li>
+            · <b className="text-neutral-100">Vercel, Inc.</b> — 웹 서비스 호스팅 및 요청 처리
+          </li>
+        </ul>
+        <p className="mt-2">
+          ② 위탁 기간은 서비스 이용 종료 또는 위탁 계약 종료 시까지이며, 운영자는 수탁자가
+          개인정보를 안전하게 처리하는지 관리합니다. 수탁자가 바뀌는 경우 본 처리방침을 통하여
+          알립니다.
+        </p>
+      </Section>
+
+      <Section n="제9조" title="개인정보의 국외 이전">
+        <p>
+          ① 서비스의 데이터는 <b className="text-neutral-100">대한민국(서울) 리전</b>에 저장됩니다.
+          다만 제8조의 수탁자는 미국 법인이므로, 시스템 유지보수 및 장애 대응 과정에서 개인정보가
+          국외에서 접근·처리될 수 있습니다.
+        </p>
+        <ul className="mt-2 space-y-1 text-neutral-400">
+          <li>· 이전받는 자: Supabase, Inc. / Vercel, Inc. (미국)</li>
+          <li>· 이전 항목: 제6조에 따른 수집 항목 및 서비스 접속 기록</li>
+          <li>· 이전 시기 및 방법: 서비스 이용 시 네트워크를 통하여 수시로 전송</li>
+          <li>· 이전 목적: 제8조에 따른 위탁 업무 수행</li>
+          <li>· 보유 및 이용 기간: 제10조에 따른 보유 기간 또는 위탁 계약 종료 시까지</li>
+        </ul>
+        <p className="mt-2">
+          ② 이용자는 국외 이전을 거부할 수 있습니다. 다만 서비스는 위 수탁자를 통해서만 제공되므로,
+          거부하는 경우 서비스를 이용할 수 없습니다.
+        </p>
+      </Section>
+
+      <Section n="제10조" title="개인정보의 보유 및 파기">
         <p>
           ① 개인정보는 <b className="text-neutral-100">2026학년도 종료 시까지</b> 보유하며,
           학년이 변경되는 시점에 일괄 파기합니다. 다만, 미납된 벌금이 있는 경우에는 납부가 완료될 때까지 보유하며
@@ -121,9 +167,71 @@ export function TermsBody() {
           ② 이용자는 언제든지 자신의 개인정보 삭제를 요청할 수 있습니다. 다만 미납 벌금이 있는
           경우에는 해당 회계 처리가 끝난 후 파기합니다.
         </p>
+        <p className="mt-2">
+          ③ <b className="text-neutral-100">파기 절차</b> — 운영자는 보유 기간이 끝나거나 처리
+          목적이 달성된 개인정보를 확인한 뒤, 그 날부터 5일 이내에 파기합니다.
+        </p>
+        <p className="mt-2">
+          ④ <b className="text-neutral-100">파기 방법</b> — 데이터베이스에 저장된 정보는 복구할 수
+          없도록 삭제하고, 입금 완료 화면 이미지 등 파일은 저장소에서 영구 삭제합니다. 출력물이 있는
+          경우 분쇄하거나 소각합니다.
+        </p>
       </Section>
 
-      <Section n="제9조" title="벌금에 관한 사항">
+      <Section n="제11조" title="이용자의 권리와 행사 방법">
+        <p>
+          ① 이용자는 언제든지 자신의 개인정보에 대하여 열람, 정정·삭제, 처리정지를 요구하거나
+          동의를 철회할 수 있습니다.
+        </p>
+        <p className="mt-2">
+          ② 권리 행사는 운영자에게 직접 말하거나 제13조의 개인정보 보호책임자에게 이메일로 요청할
+          수 있으며, 운영자는 요청을 받은 날부터 10일 이내에 조치하고 그 결과를 알립니다.
+        </p>
+        <p className="mt-2">
+          ③ 법정대리인 또는 이용자가 위임한 사람을 통해서도 권리를 행사할 수 있습니다.
+        </p>
+        <p className="mt-2">
+          ④ 다만 미납 벌금의 회계 처리 등 학급 운영에 필요한 기록은 해당 처리가 끝날 때까지
+          삭제·처리정지가 제한될 수 있으며, 이 경우 그 사유를 알립니다.
+        </p>
+      </Section>
+
+      <Section n="제12조" title="쿠키 등 자동 수집 장치">
+        <p>
+          ① 서비스는 로그인 상태를 유지하기 위하여 쿠키를 사용합니다. 이 쿠키에는 로그인 확인용
+          정보만 담기며, 광고나 이용 행태 분석을 위한 쿠키는 사용하지 않습니다.
+        </p>
+        <p className="mt-2">
+          ② 이용자는 웹 브라우저 설정에서 쿠키 저장을 거부하거나 삭제할 수 있습니다. 다만 쿠키를
+          거부하면 로그인이 유지되지 않아 서비스 이용에 지장이 있을 수 있습니다.
+        </p>
+      </Section>
+
+      <Section n="제13조" title="개인정보 보호책임자">
+        <p>
+          운영자는 개인정보 처리에 관한 업무를 총괄하고 이용자의 문의·불만을 처리하기 위하여 다음과
+          같이 개인정보 보호책임자를 지정합니다.
+        </p>
+        <ul className="mt-2 space-y-1 text-neutral-400">
+          <li>· 성명: 황성재</li>
+          <li>· 연락처: 25_hsj0325@dshs.kr</li>
+        </ul>
+      </Section>
+
+      <Section n="제14조" title="권익침해 구제 방법">
+        <p>
+          이용자는 개인정보 침해로 인한 구제를 받기 위하여 다음 기관에 분쟁 해결이나 상담 등을
+          신청할 수 있습니다.
+        </p>
+        <ul className="mt-2 space-y-1 text-neutral-400">
+          <li>· 개인정보분쟁조정위원회: (국번없이) 1833-6972 (www.kopico.go.kr)</li>
+          <li>· 개인정보침해신고센터: (국번없이) 118 (privacy.kisa.or.kr)</li>
+          <li>· 대검찰청: (국번없이) 1301 (www.spo.go.kr)</li>
+          <li>· 경찰청: (국번없이) 182 (ecrm.police.go.kr)</li>
+        </ul>
+      </Section>
+
+      <Section n="제15조" title="벌금에 관한 사항">
         <p>
           ① 서비스는 학급 규정에 따라 부과된 벌금을{" "}
           <b className="text-neutral-100">기록·관리하는 도구</b>이며, 벌금 부과의 근거는 학급
@@ -138,7 +246,7 @@ export function TermsBody() {
         </p>
       </Section>
 
-      <Section n="제10조" title="이용자의 의무">
+      <Section n="제16조" title="이용자의 의무">
         <p>① 이용자는 다음 각 호의 행위를 하여서는 안 됩니다.</p>
         <ol className="mt-2 space-y-1 text-neutral-400">
           <li>1. 타인의 계정으로 로그인하거나 이를 시도하는 행위</li>
@@ -152,11 +260,11 @@ export function TermsBody() {
         </p>
       </Section>
 
-      <Section n="제11조" title="이용 제한">
+      <Section n="제17조" title="이용 제한">
         전조를 위반한 이용자에 대하여 운영자는 서비스 이용을 제한할 수 있습니다.
       </Section>
 
-      <Section n="제12조" title="면책">
+      <Section n="제18조" title="면책">
         <p>
           ① 운영자는 서비스의 안정적인 운영을 위하여 노력합니다. 다만 서비스는 개인이 무상으로
           운영하는 것이므로, 운영자는 다음 각 호를 보장하지 않습니다.
@@ -175,7 +283,7 @@ export function TermsBody() {
         </p>
       </Section>
 
-            <Section n="제13조" title="지식재산권">
+      <Section n="제19조" title="지식재산권">
         <p>
           ① 서비스의 소스코드는 MIT 라이선스로 공개되어 있으며, 해당 라이선스가 정하는 범위에서
           자유롭게 이용·수정·배포할 수 있습니다.
@@ -199,17 +307,26 @@ export function TermsBody() {
         </p>
       </Section>
 
-      <Section n="제14조" title="약관의 변경">
+      <Section n="제20조" title="약관의 변경">
         <p>① 운영자는 필요한 경우 본 약관을 변경할 수 있습니다.</p>
-        <p className="mt-2">② 약관을 변경하는 경우 서비스 내 공지를 통하여 알립니다.</p>
         <p className="mt-2">
-          ③ 변경된 약관의 공지 후에도 이용자가 서비스를 계속 이용하는 경우, 변경 사항에 동의한
+          ② 약관을 변경하는 경우 변경 내용과 시행일을{" "}
+          <b className="text-neutral-100">시행일 7일 전부터</b> 서비스 내 공지를 통하여 알립니다.
+          다만 이용자에게 불리하거나 개인정보 처리에 관한 중요한 사항을 변경하는 경우에는{" "}
+          <b className="text-neutral-100">시행일 30일 전부터</b> 알립니다.
+        </p>
+        <p className="mt-2">
+          ③ 중요한 사항이 변경된 경우 서비스는 다음 접속 시 변경된 약관에 대한 동의를 다시
+          받습니다.
+        </p>
+        <p className="mt-2">
+          ④ 변경된 약관의 공지 후에도 이용자가 서비스를 계속 이용하는 경우, 변경 사항에 동의한
           것으로 봅니다.
         </p>
       </Section>
 
       <p className="border-t border-line pt-4 text-xs text-neutral-500">
-        부칙 · 본 약관은 2026년 10월 13일부터 시행합니다.
+        부칙 · 본 약관은 2026년 11월 4일부터 시행합니다. (이전 판: 2026년 10월 13일)
       </p>
     </div>
   );
