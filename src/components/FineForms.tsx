@@ -174,7 +174,8 @@ function LateForm({
         <p className="mt-0.5 text-xl font-semibold">{won(amount)}</p>
         {nextAmount && (
           <p className="mt-1 text-xs text-neutral-500">
-            지각할 때마다 2배로 올라요 (최대 {won(16000)})
+            같은 주에 지각할 때마다 2배로 올라요 (최대 {won(16000)}). 매주 일요일에{" "}
+            {won(1000)}으로 돌아가요
           </p>
         )}
       </div>

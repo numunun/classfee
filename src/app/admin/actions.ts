@@ -59,8 +59,10 @@ export async function createLateFine(formData: FormData) {
   if (!studentId) throw new Error("학생을 선택하세요");
 
   // 지각은 누진제. 금액은 DB 함수가 계산한다 (횟수는 서버만 신뢰).
+  // 같은 주(일요일 시작) 안의 횟수로 정하므로 부과일을 함께 넘긴다.
   const { data: amount, error: amtErr } = await supabase.rpc("next_late_amount", {
     p_student: studentId,
+    p_day: occurred,
   });
   if (amtErr) throw new Error(amtErr.message);
 

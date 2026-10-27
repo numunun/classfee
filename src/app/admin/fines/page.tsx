@@ -24,16 +24,12 @@ export default async function NewFinePage() {
   const nextAmount: Record<string, number> = {};
 
   if (start) {
-    // 이번 주 일요일 (한국 기준). 주마다 지각 횟수가 초기화된다.
-    const now = new Date(today + "T00:00:00+09:00");
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay());
-    const weekStart = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(sunday);
+    // 이번 주 일요일 (한국 기준). 주마다 지각 횟수가 초기화된다. DB 의 week_start() 와 같다.
+    // 날짜만 다루므로 UTC 로 계산한다. (한국 자정을 Date 로 만들면 서버(UTC)의 getDay() 가
+    // 전날 요일을 돌려줘서 주 시작이 하루 밀렸다)
+    const sunday = new Date(today + "T00:00:00Z");
+    sunday.setUTCDate(sunday.getUTCDate() - sunday.getUTCDay());
+    const weekStart = sunday.toISOString().slice(0, 10);
 
     const countFrom = weekStart > start ? weekStart : start;
 
