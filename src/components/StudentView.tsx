@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { TopBar } from "@/components/TopBar";
 import { PageShell } from "@/components/PageShell";
-import { StudentPayment } from "@/components/StudentPayment";
 import { MealCard } from "@/components/MealCard";
 import { PenaltyStatus } from "@/components/PenaltyStatus";
 import { NoticeBoard } from "@/components/NoticeBoard";
@@ -244,14 +243,12 @@ export async function StudentView({
               <PenaltyStatus total={cumulativeTotal} />
             </div>
 
-            {!readOnly && selectable.length > 0 && (
-              <div className="mt-4">
-                <StudentPayment
-                  fines={selectable}
-                  myName={me.name}
-                  isCollector={s.collector_student_number === me.student_number}
-                />
-              </div>
+            {selectable.length > 0 && (
+              // 입금 확인은 관리자가 통장 내역을 보고 한다. 학생은 입금만 하면 된다.
+              <p className="mt-4 rounded-xl bg-surface-2 px-3.5 py-3 text-xs leading-relaxed text-neutral-400">
+                아래 계좌로 <b className="text-neutral-200">본인 실명</b>으로 입금하면, 관리자가 통장
+                내역을 확인한 뒤 완납 처리해요. 따로 신청하지 않아도 돼요.
+              </p>
             )}
 
             <div className="mt-4 flex items-center gap-3 border-t border-line pt-4">

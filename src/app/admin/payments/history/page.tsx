@@ -48,7 +48,7 @@ export default async function PaymentHistoryPage() {
   return (
     <>
       <PageHeader
-        back={{ href: "/admin/payments", label: "입금 승인" }}
+        back={{ href: "/admin/payments", label: "입금 확인" }}
         title="입금 처리 내역"
         description="최근 200건까지 보여줘요. 누가 언제 처리했는지 남아 있어요."
       />

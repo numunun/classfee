@@ -86,7 +86,7 @@ export function TermsBody() {
           <li>· 학교 구글 이메일 — 로그인 시 자동 수집</li>
           <li>· 벌금 부과 및 납부 내역</li>
           <li>· CIP 출결 및 불참 사유</li>
-          <li>· 입금 완료 화면 이미지</li>
+          <li>· 입금 확인 이미지 — 관리자가 학급 통장의 입금 내역을 촬영해 첨부</li>
         </ul>
         <p className="mt-2">
           ② 주민등록번호, 연락처, 주소 등 제1항에 열거되지 않은 정보는 수집하지 않습니다.
@@ -94,9 +94,9 @@ export function TermsBody() {
         <p className="mt-2">
           ③{" "}
           <b className="text-neutral-100">
-            입금 완료 화면 이미지에는 계좌번호, 잔액 등이 함께 촬영될 수 있습니다.
+            입금 확인 이미지에는 입금자명, 금액, 다른 입금 내역 등이 함께 촬영될 수 있습니다.
           </b>{" "}
-          해당 이미지는 관리자 및 본인 외에는 열람할 수 없습니다.
+          해당 이미지는 관리자 외에는 열람할 수 없습니다.
         </p>
       </Section>
 
@@ -125,7 +125,7 @@ export function TermsBody() {
         <ul className="mt-2 space-y-1 text-neutral-400">
           <li>
             · <b className="text-neutral-100">Supabase, Inc.</b> — 데이터베이스·로그인 인증·파일(입금
-            완료 화면 이미지) 저장
+            확인 이미지) 저장
           </li>
           <li>
             · <b className="text-neutral-100">Vercel, Inc.</b> — 웹 서비스 호스팅 및 요청 처리
@@ -173,7 +173,7 @@ export function TermsBody() {
         </p>
         <p className="mt-2">
           ④ <b className="text-neutral-100">파기 방법</b> — 데이터베이스에 저장된 정보는 복구할 수
-          없도록 삭제하고, 입금 완료 화면 이미지 등 파일은 저장소에서 영구 삭제합니다. 출력물이 있는
+          없도록 삭제하고, 입금 확인 이미지 등 파일은 저장소에서 영구 삭제합니다. 출력물이 있는
           경우 분쇄하거나 소각합니다.
         </p>
       </Section>
@@ -251,7 +251,7 @@ export function TermsBody() {
         <ol className="mt-2 space-y-1 text-neutral-400">
           <li>1. 타인의 계정으로 로그인하거나 이를 시도하는 행위</li>
           <li>2. CIP 불참 사유를 허위로 신고하는 행위</li>
-          <li>3. 입금 완료 화면 이미지를 위조·변조하여 제출하는 행위</li>
+          <li>3. 입금 내역을 위조·변조하거나 다른 사람 명의로 입금하여 혼동을 일으키는 행위</li>
           <li>4. 서비스의 취약점을 이용하여 기록을 무단으로 변경하려는 행위</li>
           <li>5. 서비스를 통하여 알게 된 타인의 정보를 학급 외부에 유출하는 행위</li>
         </ol>

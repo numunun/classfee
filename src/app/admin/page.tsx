@@ -35,7 +35,10 @@ export default async function AdminDashboard() {
   const unpaidTotal = live
     .filter((f) => f.status === "unpaid" || f.status === "doubled")
     .reduce((a, f) => a + payable(f), 0);
-  const pendingCount = live.filter((f) => f.status === "pending_approval").length;
+  // 입금 확인을 기다리는 사람 = 미납(또는 2배) 벌금이 있는 학생 수
+  const unpaidPeople = new Set(
+    live.filter((f) => f.status === "unpaid" || f.status === "doubled").map((f) => f.student_id)
+  ).size;
   // 완납률은 건수가 아니라 금액 기준으로 낸다.
   // 2배가 된 건이 섞이면 건수 비율은 실제 걷힌 비율과 어긋난다.
   const paidTotal = live
@@ -49,7 +52,7 @@ export default async function AdminDashboard() {
 
       <section className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <Stat label="미납" value={won(unpaidTotal)} tone="red" />
-        <Stat label="승인 대기" value={`${pendingCount}건`} tone="amber" />
+        <Stat label="미납 인원" value={`${unpaidPeople}명`} tone="amber" />
         <Stat label="총 부과" value={won(total)} hint="취소 제외" />
         <Stat label="완납률" value={`${rate}%`} progress={rate} />
       </section>
@@ -59,7 +62,7 @@ export default async function AdminDashboard() {
       </Link>
 
       <nav className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
-        <Action href="/admin/payments" icon={Wallet} badge={pendingCount}>입금 승인</Action>
+        <Action href="/admin/payments" icon={Wallet}>입금 확인</Action>
         <Action href="/admin/night-study" icon={Moon}>CIP 관리</Action>
         <Action href="/admin/cleaning" icon={Sparkles}>청소 현황</Action>
         <Action href="/admin/notices" icon={Megaphone}>공지</Action>

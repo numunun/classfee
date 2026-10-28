@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/Avatar";
 import { ApprovalButtons } from "@/components/PaymentApproval";
-import { FINE_TYPE_LABEL, payable, won, type FineStatus, type FineType } from "@/lib/types";
+import { FINE_TYPE_LABEL, payable, won, type Fine, type FineStatus, type FineType } from "@/lib/types";
 import { PageHeader, HeaderLink } from "@/components/PageHeader";
+import { PaymentConfirmRow, type UnpaidStudent } from "@/components/PaymentConfirm";
+
+export const dynamic = "force-dynamic";
 
 type Req = {
   id: string;
@@ -21,8 +24,40 @@ type Req = {
   }[];
 };
 
-export default async function PaymentsPage() {
+export default async function PaymentsPage({
+  searchParams,
+}: {
+  searchParams: { student?: string };
+}) {
   const supabase = createClient();
+
+  // 미납(또는 2배) 벌금이 있는 학생. 관리자가 통장 내역을 보고 여기서 입금을 확인한다.
+  const { data: unpaidData } = await supabase
+    .from("fines")
+    .select("*, students!fines_student_id_fkey(id, name, student_number)")
+    .in("status", ["unpaid", "doubled"])
+    .is("deleted_at", null)
+    .order("occurred_date", { ascending: true });
+
+  const byStudent = new Map<string, UnpaidStudent>();
+  for (const f of (unpaidData ?? []) as (Fine & {
+    students: { id: string; name: string; student_number: number | null } | null;
+  })[]) {
+    if (!f.students) continue;
+    const cur = byStudent.get(f.student_id) ?? {
+      id: f.students.id,
+      name: f.students.name,
+      studentNumber: f.students.student_number,
+      fines: [],
+    };
+    cur.fines.push(f);
+    byStudent.set(f.student_id, cur);
+  }
+  const unpaid = Array.from(byStudent.values()).sort(
+    (a, b) => (a.studentNumber ?? 0) - (b.studentNumber ?? 0)
+  );
+
+  // 예전 방식(학생이 올린 입금 신청) 중 아직 처리하지 않은 것. 새로 생기지는 않는다.
   const { data } = await supabase
     .from("payment_requests")
     .select(
@@ -50,14 +85,33 @@ export default async function PaymentsPage() {
     <>
       <PageHeader
         back={{ href: "/admin", label: "대시보드" }}
-        title="입금 승인"
+        title="입금 확인"
+        description="통장에 입금이 들어오면, 그 학생의 받은 벌금을 고르고 입금 내역 스크린샷을 붙여 확인하세요. 바로 완납 처리돼요."
         action={<HeaderLink href="/admin/payments/history">처리 내역</HeaderLink>}
       />
 
-      {reqs.length === 0 && (
-        <p className="rounded-2xl bg-surface px-4 py-8 text-center text-sm text-neutral-500">
-          대기 중인 입금 신청이 없어요.
-        </p>
+      <section>
+        <h2 className="mb-2.5 px-1 font-semibold">
+          미납 학생 <span className="text-sm font-normal text-neutral-500">{unpaid.length}명</span>
+        </h2>
+        {unpaid.length === 0 ? (
+          <p className="rounded-3xl bg-surface px-4 py-8 text-center text-sm text-neutral-500">
+            미납 벌금이 있는 학생이 없어요.
+          </p>
+        ) : (
+          <ul className="overflow-hidden rounded-3xl bg-surface">
+            {unpaid.map((st) => (
+              <PaymentConfirmRow key={st.id} student={st} autoOpen={searchParams.student === st.id} />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {reqs.length > 0 && (
+        <h2 className="mb-2.5 mt-7 px-1 font-semibold">
+          예전 방식 입금 신청{" "}
+          <span className="text-sm font-normal text-neutral-500">{reqs.length}건 · 학생이 올린 신청</span>
+        </h2>
       )}
 
       <div className="space-y-3">

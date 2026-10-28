@@ -188,7 +188,17 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         </div>
 
         <section className="rounded-3xl bg-surface p-5">
-          <h2 className="mb-2 font-medium">🧾 입금 신청</h2>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="font-medium">🧾 입금 내역</h2>
+            {owingTotal > 0 && (
+              <Link
+                href={`/admin/payments?student=${student.id}`}
+                className="btn btn-sm press bg-surface-2 font-semibold text-neutral-200"
+              >
+                입금 확인
+              </Link>
+            )}
+          </div>
           <ul className="space-y-2">
             {requests.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-2 text-sm">
@@ -206,12 +216,12 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       : "bg-amber-950 text-amber-300"
                   }`}
                 >
-                  {r.status === "approved" ? "승인" : r.status === "rejected" ? "거절" : "대기"}
+                  {r.status === "approved" ? "확인" : r.status === "rejected" ? "거절" : "대기"}
                 </span>
               </li>
             ))}
             {requests.length === 0 && (
-              <li className="py-4 text-center text-sm text-neutral-500">신청 내역이 없어요.</li>
+              <li className="py-4 text-center text-sm text-neutral-500">입금 내역이 없어요.</li>
             )}
           </ul>
         </section>
